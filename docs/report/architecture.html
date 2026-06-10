@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>整体架构 — Werewolf-AI</title>
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container inner">
+      <a class="brand" href="./">
+        <span>Werewolf-AI</span>
+      </a>
+      <nav class="nav">
+        <a href="./">概述</a>
+        <a href="./architecture.html" class="active">架构</a>
+        <a href="./game-system.html">游戏系统</a>
+        <a href="./agent.html">Agent</a>
+        <a href="./experiments.html">实验</a>
+        <a href="./console.html">实验台</a>
+        <a href="https://github.com/XBQNRCM/werewolf-ai" class="nav-gh" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <div class="kicker">01 / Architecture</div>
+        <h1>整体架构</h1>
+        <p>
+          对局内核 + 多控制面 + 外部决策服务。游戏后端只负责房间与对局事实；
+          真人、脚本、LLM Agent 与实验 runner 都通过同一套公开协议接入，规则层不区分控制器类型。
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">1</span>设计取向</h2>
+        <div class="prose">
+          <p>系统最关键的一个决策是：把「狼人杀规则」「玩家决策」「实验编排」三件事彻底分开。游戏后端是唯一的局内事实源，只维护对局发生了什么；它不理解某个玩家背后是真人、浏览器脚本、Agent Player Server 还是实验 runner。</p>
+          <p>这样拆分的收益是同一个引擎既能支撑真人体验，也能支撑批量 Agent 实验；上层入口可以各自按产品体验或实验效率演进，而不必把规则、视角隔离、Agent prompt 和实验统计揉进同一个系统。</p>
+        </div>
+        <figure class="figure-block" style="margin-top:24px;">
+          <div class="mermaid">
+flowchart TB
+  Human(["真人用户"])
+
+  subgraph control["控制面 / 观察面"]
+    GameUI["游戏前端<br/>房间 UI · AI 补位 · 观战 / 回放"]
+    ExpFE["实验控制台前端<br/>批量编排 · 监控 · 诊断"]
+  end
+
+  subgraph game["游戏系统 · werewolf-game-system"]
+    GameBackend["游戏后端<br/>房间 · 状态机 · 技能 · 视角裁剪 · 事件"]
+    GameStore[("游戏库 werewolf_app<br/>events · snapshots · actions · replay")]
+  end
+
+  subgraph agent["Agent 决策层 · werewolf-agent"]
+    AgentServer["Agent Player Server<br/>session loop"]
+    Cognition["认知<br/>belief · strategy · decision"]
+    Memory["跨局记忆<br/>strategy memory · 复盘"]
+    Profile["Profiles · 角色变体配置"]
+    AgentStore[("Agent 库 werewolf_agent<br/>推断 · 决策 · 记忆 · LLM trace")]
+  end
+
+  subgraph exp["实验平台 · werewolf-experiments"]
+    ExpBackend["实验后端<br/>Runner 编排 · 失败恢复 · summary"]
+    ExpStore[("实验库 werewolf_experiments<br/>调度 · 房间/对局映射 · runner events")]
+  end
+
+  Human --> GameUI
+  GameUI -->|"房间 / 准备 / 开局 / 动作 / 视角 (REST+WS)"| GameBackend
+  GameUI -->|"AI 补位：创建 / 停止 session"| AgentServer
+
+  ExpFE -->|"编排 / 监控 (REST)"| ExpBackend
+  ExpFE -->|"观战 / 回放 / 上帝视角 (REST+WS)"| GameBackend
+  ExpBackend -->|"Runner：建房 / 开局 / 回收 / summary (HTTP)"| GameBackend
+  ExpBackend -->|"创建 / 停止 session"| AgentServer
+  ExpBackend --> ExpStore
+  ExpBackend -. "只读 LLM trace" .-> AgentStore
+
+  AgentServer -->|"join / 准备 / pending / 动作 / god replay 复盘"| GameBackend
+  AgentServer --> Profile
+  AgentServer --> Cognition
+  Cognition <--> Memory
+  AgentServer --> AgentStore
+
+  GameBackend --> GameStore
+
+  classDef ctrl fill:#161b27,stroke:#8aa0c8,color:#dfe6f2;
+  classDef gm fill:#11201c,stroke:#74b6c4,color:#d6ecef;
+  classDef ag fill:#231018,stroke:#cf7186,color:#f2d7df;
+  classDef ex fill:#211a10,stroke:#d8b06a,color:#f0e2c8;
+  classDef st fill:#10141d,stroke:#3a425a,color:#c6cdda;
+  class GameUI,ExpFE ctrl;
+  class GameBackend gm;
+  class AgentServer,Cognition,Memory,Profile ag;
+  class ExpBackend ex;
+  class GameStore,AgentStore,ExpStore st;
+  style control fill:#0f1320,stroke:#2c3550,color:#9aa1b2;
+  style game fill:#0e1518,stroke:#244039,color:#9aa1b2;
+  style agent fill:#170f14,stroke:#3a1f27,color:#9aa1b2;
+  style exp fill:#16120c,stroke:#3a3120,color:#9aa1b2;
+          </div>
+          <figcaption>总体架构与跨系统数据流：游戏后端是唯一局内事实源，真人前端 / Agent / 实验 Runner 共用同一套接入协议；实箭头为写入或主调用，虚箭头为只读访问。</figcaption>
+        </figure>
+
+        <figure class="figure-block" style="margin-top:24px;">
+          <img src="./assets/images/architecture.png" alt="系统架构图">
+          <figcaption>游戏系统 = 局内事实源；Agent = 玩家决策层；实验平台 = 批量编排与分析入口。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">2</span>游戏系统只认识玩家与动作</h2>
+        <p class="section-desc">核心对象是 <code>room</code>、<code>game</code>、<code>player</code>、<code>ActionContext</code> 与 <code>ActionSubmit</code>。同构接入体现在三条路径上，它们共享同一套局内动作协议。</p>
+        <div class="card-grid">
+          <article class="card">
+            <span class="tag">human</span>
+            <h3>真人</h3>
+            <p>游戏前端 join → ready → 查询 pending action → 提交动作 → 拉取 view / events / replay。</p>
+          </article>
+          <article class="card">
+            <span class="tag">ai backfill</span>
+            <h3>AI 补位</h3>
+            <p>游戏前端创建 Agent session；随后 Agent 自己 join、ready、轮询 pending action 并提交动作。</p>
+          </article>
+          <article class="card">
+            <span class="tag">batch</span>
+            <h3>批量实验</h3>
+            <p>实验 runner 创建房间、创建 Agent session、等待 ready 并开局；局内动作仍由 Agent 直接提交。</p>
+          </article>
+        </div>
+        <div class="callout">
+          <p>因此游戏系统的职责保持稳定：它只维护「这局游戏发生了什么」，不维护「为什么某个控制器这样决策」。规则正确性与信息隔离全部在后端完成。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">3</span>两类控制面</h2>
+        <p class="section-desc">游戏前端与实验控制台地位相近，都是游戏系统之上的控制与观察入口，差异在目标用户与工作流。二者都不拥有局内状态。</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>控制面</th><th>面向目标</th><th>主要能力</th><th>不负责</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>游戏前端</td>
+                <td>真人游玩、手动调试、演示</td>
+                <td>登录、建/加入房间、准备、AI 补位、真人行动、观战、回放</td>
+                <td>批量统计、跨房间调度、Agent 内部推理</td>
+              </tr>
+              <tr>
+                <td>实验控制台</td>
+                <td>对照实验、批量迭代、诊断</td>
+                <td>多房间并行、多局串行、固定角色、公开名重排、summary、LLM trace、live/replay</td>
+                <td>狼人杀规则、局内动作代理、prompt 解析</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose">需要房间、对局、事件、视角或 replay 时，它们回到游戏系统读取；需要 Agent 内部推理与模型调用时，实验控制台回到 Agent 数据库读取。</p>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">4</span>身份与信息隔离</h2>
+        <p class="section-desc">系统区分三种命名，避免自进化 Agent 从多局公开名字中反推出模型或阵营。</p>
+        <div class="card-grid">
+          <article class="card">
+            <h3><code>room_user_name</code></h3>
+            <p>房间成员名，用于 join、ready 与按玩家轮询 pending action。可稳定绑定实验 slot，但不直接暴露为局内玩家名。</p>
+          </article>
+          <article class="card">
+            <h3><code>game_user_name</code></h3>
+            <p>本局公开名，出现在游戏状态、事件、发言、投票与 action context 中。实验侧通过 <code>public_name_pool</code> 每局重排。</p>
+          </article>
+          <article class="card">
+            <h3><code>agent_identity_id</code></h3>
+            <p>Agent 私有稳定身份，用于跨局策略记忆与实验分析，不暴露给游戏系统玩家视角。</p>
+          </article>
+        </div>
+        <div class="callout teal">
+          <p>信息隔离由游戏系统后端执行。公共视角不包含角色真相、狼人夜聊、验人结果、女巫药品、私有动作请求或 Agent raw output；玩家视角只含该玩家可见信息；上帝视角用于可信调试与实验复盘。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">5</span>数据事实源</h2>
+        <pre class="code">database: werewolf_game
+├── schema werewolf_app          # game-system：局内事实
+└── schema werewolf_experiments  # experiments：实验编排事实
+
+database: werewolf_agent         # agent：认知、决策、记忆与 LLM trace</pre>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>数据类型</th><th>归属</th></tr></thead>
+            <tbody>
+              <tr><td>胜负、角色、死亡、事件、动作上下文/响应、快照、replay</td><td>game-system</td></tr>
+              <tr><td>实验配置、房间/对局映射、runner events、summary 引用</td><td>experiments</td></tr>
+              <tr><td>belief、decision、postgame review、strategy memory、LLM 调用链路</td><td>agent</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose">这种归属约定避免同一局游戏在多个库中出现两份事实，也让各服务可以独立演进。replay、LLM trace 与 runner events 三者共同构成完整的复盘链路。</p>
+
+        <div class="next-prev">
+          <a class="prev" href="./"><small>上一章</small>概述</a>
+          <a class="next" href="./game-system.html"><small>下一章</small>游戏系统后端 →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p>Werewolf-AI · Apache License 2.0</p></div>
+  </footer>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      securityLevel: "loose",
+      flowchart: { htmlLabels: true, curve: "basis", padding: 14, nodeSpacing: 46, rankSpacing: 58 },
+      themeVariables: {
+        background: "transparent",
+        primaryColor: "#181d2a",
+        primaryBorderColor: "#242a3a",
+        primaryTextColor: "#e7e4da",
+        lineColor: "#9aa1b2",
+        clusterBkg: "#0f121b",
+        clusterBorder: "#242a3a",
+        edgeLabelBackground: "#141823",
+        fontFamily: "-apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif",
+        fontSize: "14px"
+      }
+    });
+  </script>
+</body>
+</html>

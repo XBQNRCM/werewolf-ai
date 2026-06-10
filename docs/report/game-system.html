@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>游戏系统 — Werewolf-AI</title>
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container inner">
+      <a class="brand" href="./">
+        <span>Werewolf-AI</span>
+      </a>
+      <nav class="nav">
+        <a href="./">概述</a>
+        <a href="./architecture.html">架构</a>
+        <a href="./game-system.html" class="active">游戏系统</a>
+        <a href="./agent.html">Agent</a>
+        <a href="./experiments.html">实验</a>
+        <a href="./console.html">实验台</a>
+        <a href="https://github.com/XBQNRCM/werewolf-ai" class="nav-gh" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <div class="kicker">02 / Game System</div>
+        <h1>游戏系统后端</h1>
+        <p>
+          推理内核：对局状态机与技能调度、服务端信息隔离、event / frame / replay，
+          以及「REST 确认事实、WebSocket 提示刷新」的通信机制。所有局内正确性都在后端完成。
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">1</span>对局引擎与技能调度</h2>
+        <p class="lead-block">角色技能被统一抽象为「某个阶段向某些玩家生成合法行动」。引擎不直接调用 Agent，只根据 <code>GameState</code> 生成 pending action，等待外部提交动作后再推进。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>阶段</th><th>行动者</th><th>合法动作</th></tr></thead>
+            <tbody>
+              <tr><td>狼人夜聊</td><td>存活狼人，确定性顺序</td><td><code>werewolf_chat</code>，队内可见</td></tr>
+              <tr><td>狼人击杀</td><td>存活狼人</td><td><code>kill</code>，允许空刀时可 <code>skip</code>；平票复投后按种子裁决</td></tr>
+              <tr><td>预言家</td><td>存活预言家</td><td><code>check</code>，只获得阵营</td></tr>
+              <tr><td>女巫</td><td>存活女巫且有药</td><td><code>use_save</code> / <code>use_poison</code> / <code>skip</code></td></tr>
+              <tr><td>白天发言</td><td>存活玩家按座次队列</td><td><code>speak</code></td></tr>
+              <tr><td>白天投票</td><td>存活玩家</td><td><code>vote</code>，允许时可 <code>abstain</code></td></tr>
+              <tr><td>遗言 / 开枪</td><td>出局玩家 / 出局猎人</td><td><code>last_word</code> / <code>shoot</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose">支持 6/8/10/12 人局与五类角色（狼人、预言家、女巫、猎人、村民），屠边胜负。房间是长期容器、可串行多局——这对 Agent 跨局复盘与实验同房多局至关重要；每局由 <code>room_seed + game_index</code> 派生 <code>game_seed</code>，可复现且不重复。</p>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">2</span>服务端信息隔离</h2>
+        <p class="section-desc">信息隔离不是前端隐藏字段，而是后端视角裁剪。同一套规则在事件接口、WebSocket、回放快照、动作请求与动作响应中被重复应用，避免单一路径遗漏导致泄露。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>视角</th><th>用途</th><th>可见信息</th></tr></thead>
+            <tbody>
+              <tr><td><code>public</code></td><td>观战、公开回放</td><td>公开玩家状态、公开事件、发言、投票与结算；夜间统一折叠为 <code>night</code>。</td></tr>
+              <tr><td><code>player</code></td><td>真人/Agent 决策、玩家回放</td><td>公开信息 + 自己身份与私有事件；狼人可见队友身份与狼队事件。</td></tr>
+              <tr><td><code>god</code></td><td>调试、实验复盘</td><td>完整服务端状态、全部事件、动作请求/响应与 replay frame。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <h3>四类上下文</h3>
+            <ul>
+              <li><strong>服务端上下文</strong>：<code>GameState</code>，仅后端或 god 暴露</li>
+              <li><strong>公共上下文</strong>：<code>build_public_view()</code> 裁剪生成</li>
+              <li><strong>玩家私有上下文</strong>：<code>build_player_view()</code> 按玩家生成</li>
+              <li><strong>决策上下文</strong>：<code>ActionContext.visible_state</code></li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>隔离不变量</h3>
+            <ul>
+              <li>公共视图不出现任何私有 action request</li>
+              <li>更换视图参数无法绕过身份校验</li>
+              <li>回放按视角裁剪，历史数据不突破隔离</li>
+              <li>Agent 收到的已是裁剪结果，无需维护隐藏事实</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">3</span>Event、Frame 与 Replay</h2>
+        <p class="section-desc">持久化目标是让对局可恢复、可回放、可分析。回放不是前端缓存，而是后端根据事件、快照、动作请求与动作响应组装。</p>
+        <pre class="code">action_request  →  action_response  →  events  →  state_after</pre>
+        <p class="prose">上述链路构成一个 <strong>replay frame</strong>：它完整记录了行动者当时看到什么（<code>visible_state</code>）、能做什么（<code>legal_actions</code>）、实际提交了什么（<code>action_response</code>），以及状态如何被推进（<code>events</code> + <code>state_after</code>）。事件本身携带 <code>visibility</code> 与可选 <code>user_name</code>，在所有输出路径统一过滤；因此同一份 frame 既适合前端播放，也适合人工排查与 Agent 复盘。</p>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">4</span>通信机制</h2>
+        <p class="lead-block">REST 确认事实、WebSocket 提示刷新。客户端收到推送后重新拉取完整视图，而不依赖推送消息中的局部数据自行推断状态。</p>
+
+        <h3 style="margin:26px 0 10px;">Pending Action 与 Action Submit</h3>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <h3>ActionContext</h3>
+            <ul>
+              <li><code>request_id</code>：绑定状态版本、阶段、队列位置</li>
+              <li><code>legal_actions</code>：当前合法动作与合法目标</li>
+              <li><code>action_instruction</code>：中文行动提示 + JSON Schema</li>
+              <li><code>visible_state</code>：按行动者视角裁剪的上下文</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>提交与幂等</h3>
+            <ul>
+              <li><code>request_id</code> + <code>idempotency_key</code> 共同保证幂等</li>
+              <li>每次提交重新计算 pending，不信任客户端缓存</li>
+              <li>过期 <code>request_id</code> 不命中当前 pending</li>
+              <li>同一 <code>game_id</code> 加锁，动作串行生效</li>
+            </ul>
+          </article>
+        </div>
+
+        <h3 style="margin:28px 0 10px;">WebSocket 推送</h3>
+        <pre class="code">ws://&lt;host&gt;/ws/rooms/{room_id}?view=public|player|god&user_name=&lt;name&gt;</pre>
+        <p class="prose">消息类型包括 <code>room_updated</code>、<code>game_started</code>、<code>game_updated</code>、<code>game_voided</code> 等，只提示「有更新」。推送丢失时，客户端可随时通过 REST 重新获取完整状态——推送从不作为最终数据源。</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">5</span>多 Agent 协调</h2>
+        <p class="section-desc">游戏系统不内置 Agent 注册中心，也不代理 Agent 间的私下通信。协调通过状态机间接完成。</p>
+        <div class="pipeline">
+          <div class="step"><span class="step-k">1</span><span class="step-t">加入房间</span><span class="step-d">以普通玩家身份 join</span></div>
+          <div class="step"><span class="step-k">2</span><span class="step-t">准备</span><span class="step-d">自己 set_ready</span></div>
+          <div class="step"><span class="step-k">3</span><span class="step-t">轮询</span><span class="step-d">GET pending-actions</span></div>
+          <div class="step"><span class="step-k">4</span><span class="step-t">决策</span><span class="step-d">读取 ActionContext</span></div>
+          <div class="step"><span class="step-k">5</span><span class="step-t">提交</span><span class="step-d">POST actions</span></div>
+        </div>
+        <p class="prose">狼人夜聊以 <code>werewolf_chat</code> 动作与 <code>werewolf</code> 可见性记录；白天讨论以 <code>speak</code> 公开发言承载；多局实验中的公开名通过 <code>player_aliases</code> 每局重排。无论按玩家轮询还是 <code>scope=all</code> 集中拉取，动作提交都经过同一个校验入口，编排不会绕过规则或信息隔离。</p>
+
+        <div class="next-prev">
+          <a class="prev" href="./architecture.html"><small>上一章</small>整体架构</a>
+          <a class="next" href="./agent.html"><small>下一章</small>Agent 认知架构 →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p>Werewolf-AI · Apache License 2.0</p></div>
+  </footer>
+</body>
+</html>

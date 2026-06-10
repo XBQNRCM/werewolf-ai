@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实验设计与结果 — Werewolf-AI</title>
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container inner">
+      <a class="brand" href="./">
+        <span>Werewolf-AI</span>
+      </a>
+      <nav class="nav">
+        <a href="./">概述</a>
+        <a href="./architecture.html">架构</a>
+        <a href="./game-system.html">游戏系统</a>
+        <a href="./agent.html">Agent</a>
+        <a href="./experiments.html" class="active">实验</a>
+        <a href="./console.html">实验台</a>
+        <a href="https://github.com/XBQNRCM/werewolf-ai" class="nav-gh" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <div class="kicker">04 / Experiments</div>
+        <h1>自进化实验报告</h1>
+        <p>
+          基于两个自进化（self-evolve）对照实验，考察智能体在同一房间内连续 20 局的跨局学习效果。
+          核心问题：随着对局增多、复盘记忆不断积累，自进化阵营的胜率、白天投票质量与身份推断能力是否随之提升。
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title">实验设置</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>实验</th>
+                <th>实验 ID</th>
+                <th>自进化方</th>
+                <th>对手</th>
+                <th>房间数 × 每房间局数</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>好人自进化</td>
+                <td><code>exp_38fb408448ed</code></td>
+                <td><code>self_evolve_v1</code> 好人阵营</td>
+                <td><code>static_strategy_v1</code> 静态狼人</td>
+                <td>8 × 20 = 160</td>
+              </tr>
+              <tr>
+                <td>狼人自进化</td>
+                <td><code>exp_ca30ccd344dd</code></td>
+                <td><code>self_evolve_v1</code> 狼人阵营</td>
+                <td><code>static_strategy_v1</code> 静态好人</td>
+                <td>8 × 20 = 160</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ul style="color: var(--muted); padding-left: 20px;">
+          <li>角色配置：8 人局，2 狼人、1 预言家、1 女巫、1 猎人、3 村民。</li>
+          <li>分阶段口径：S1=1–5、S2=6–10、S3=11–15、S4=16–20，每段汇总 8 个房间共 40 局。</li>
+          <li>自进化方在每局结束后进行复盘，将经验写入策略记忆库，供后续对局检索复用。</li>
+          <li>对照组使用 <code>static_strategy_v1</code>（固定策略包，无局后复盘），实验变量为「固定策略包 vs 固定策略包 + 局后复盘 + room memory」。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">1</span>分阶段胜率</h2>
+        <figure class="figure-block">
+          <img src="./assets/images/fig1_stage_win_rate.png" alt="分阶段胜率">
+          <figcaption>好人胜率单调上升；狼人侧未形成稳定趋势。</figcaption>
+        </figure>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>阶段</th><th>好人自进化胜率</th><th>狼人自进化胜率</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>S1 (1–5)</td><td class="num">47.5%</td><td class="num">40.0%</td></tr>
+              <tr><td>S2 (6–10)</td><td class="num">50.0%</td><td class="num">40.0%</td></tr>
+              <tr><td>S3 (11–15)</td><td class="num">62.5%</td><td class="num">45.0%</td></tr>
+              <tr><td>S4 (16–20)</td><td class="num text-good">75.0%</td><td class="num">42.5%</td></tr>
+              <tr><td><strong>S4 − S1</strong></td><td class="num text-good"><strong>+27.5pp</strong></td><td class="num"><strong>+2.5pp</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout good">
+          <p><strong>好人自进化效果显著</strong>：胜率从 47.5% 单调上升到 75.0%，反超 50% 均势线，且呈现清晰的随局数递增趋势。</p>
+          <p><strong>狼人自进化几乎无增益</strong>：胜率始终在 40–45% 区间波动，S4 相比 S1 仅 +2.5pp，未形成稳定上升趋势。</p>
+          <p>两方角色配置对称，差异说明：自进化的学习红利在好人阵营上能转化为胜率，在狼人阵营上则难以转化。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">2</span>白天投票质量的分阶段趋势</h2>
+        <figure class="figure-block">
+          <img src="./assets/images/fig2_vote_trends.png" alt="投票趋势">
+          <figcaption>好人归票更准；狼人暴露率仅小幅下降。</figcaption>
+        </figure>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>阶段</th><th>好人自进化：投中狼人率</th><th>狼人自进化：被投中率（暴露率）</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>S1 (1–5)</td><td class="num">57.6%</td><td class="num">59.5%</td></tr>
+              <tr><td>S2 (6–10)</td><td class="num">56.3%</td><td class="num">66.2%</td></tr>
+              <tr><td>S3 (11–15)</td><td class="num">62.0%</td><td class="num">51.1%</td></tr>
+              <tr><td>S4 (16–20)</td><td class="num text-good">71.8%</td><td class="num">55.8%</td></tr>
+              <tr><td><strong>S4 − S1</strong></td><td class="num text-good"><strong>+14.2pp</strong></td><td class="num"><strong>−3.7pp</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <p><strong>机制解读</strong>：狼人胜负本质≈「两只狼是否都活到终局」。伪装变好只能减少白天被票出局，但神职夜间反制（预言家查验、女巫毒药）不受话术影响，狼人每局击杀好人数也未提升，因此暴露率的小幅改善没有传导到胜率。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">3</span>身份推断 masked accuracy 的分阶段趋势</h2>
+        <p class="section-desc">
+          <code>masked accuracy</code> 指屏蔽掉公开信息与确定性结果（如自我推断、已公开身份、预言家已查验目标）后的身份推断正确率，
+          更能反映智能体基于发言、投票、事件的纯推理能力。按 day=1 与 day≥2 分组观察。
+        </p>
+
+        <figure class="figure-block">
+          <img src="./assets/images/fig3_masked_accuracy_by_role.png" alt="各角色分阶段趋势">
+          <figcaption>masked accuracy 增益集中在 day≥2 的中后期。</figcaption>
+        </figure>
+        <figure class="figure-block">
+          <img src="./assets/images/fig3b_masked_accuracy_delta.png" alt="跨局增益对比">
+          <figcaption>5/5 角色在 day≥2 的跨局增益大于首日。</figcaption>
+        </figure>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>角色</th><th>第1天 S4−S1</th><th>第1天之后 S4−S1</th><th>后者更大？</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>狼人</td><td class="num">+1.3pp</td><td class="num text-good">+5.6pp</td><td>✓</td></tr>
+              <tr><td>预言家</td><td class="num">+4.9pp</td><td class="num text-good">+5.9pp</td><td>✓</td></tr>
+              <tr><td>女巫</td><td class="num">−0.7pp</td><td class="num text-good">+1.5pp</td><td>✓</td></tr>
+              <tr><td>猎人</td><td class="num">+4.8pp</td><td class="num text-good">+13.3pp</td><td>✓</td></tr>
+              <tr><td>村民</td><td class="num">+0.4pp</td><td class="num text-good">+8.0pp</td><td>✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="section-desc">第1天的推断几乎不随对局增多而提升；第1天之后的推断提升明显更大。自进化对身份推断的增益集中在对局的中后期（day≥2），与「好人靠中后期归票决策赢下对局」的胜率路径相互印证。</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">4</span>高价值策略示例</h2>
+        <p class="section-desc">
+          策略库 score 跨局累计：helpful +8，胜局额外 +2。为消除年龄偏差，使用归一化得分
+          <code>score / 存在局数</code> 衡量策略的单位寿命价值——这一口径也用于 Agent 的策略检索排序。
+        </p>
+
+        <figure class="figure-block">
+          <img src="./assets/images/fig5_strategy_origin_by_norm_score.png" alt="策略产生局次分布">
+          <figcaption>好人中后期仍能提炼高价值策略；狼人高分策略多集中在早期。</figcaption>
+        </figure>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>实验</th><th>分档</th><th>策略数</th><th>产生局中位数</th><th>产生局均值</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>狼人自进化</td><td>高分(≥5)</td><td class="num">10</td><td class="num"><strong>2</strong></td><td class="num">2.6</td></tr>
+              <tr><td>狼人自进化</td><td>零分</td><td class="num">483</td><td class="num">14</td><td class="num">13.0</td></tr>
+              <tr><td>好人自进化</td><td>高分(≥5)</td><td class="num">52</td><td class="num"><strong>5</strong></td><td class="num">7.4</td></tr>
+              <tr><td>好人自进化</td><td>零分</td><td class="num">1149</td><td class="num">14</td><td class="num">12.9</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:32px;">狼人自进化 Top 5 策略</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>归一化</th><th>累计分/寿命</th><th>策略内容</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="num">5.60</td><td class="num">84/15</td><td>白天发言必须完全隐藏夜间信息，对平安夜、死亡情况只基于公共事实推理，避免泄漏刀口或队友。</td></tr>
+              <tr><td>2</td><td class="num">5.56</td><td class="num">100/18</td><td>首日投票避免单独行动，无团队配合抗推时跟随弃票或分散投票，防止成为遗言焦点。</td></tr>
+              <tr><td>3</td><td class="num">5.26</td><td class="num">100/19</td><td>好人已形成单一归票方向时，狼人应紧跟风向，不做唯一分票者，否则暴露并团灭。</td></tr>
+              <tr><td>4</td><td class="num">5.26</td><td class="num">100/19</td><td>好人形成归票时跟随大流，不做异类，除非有确切把握能推出好人。</td></tr>
+              <tr><td>5</td><td class="num">5.20</td><td class="num">78/15</td><td>确认女巫解药已用后，应优先击杀女巫，防其毒药造成狼队减员。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:32px;">好人自进化 — 预言家 Top 5</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>归一化</th><th>策略内容</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="num">6.25</td><td>首夜查验中间区域或高活跃玩家，因其更可能存活到后期，便于后续传递信息。</td></tr>
+              <tr><td>2</td><td class="num">4.67</td><td>遗言时明确公布所有查验结果，对金水完全信任、避免与可疑玩家并列，防误导。</td></tr>
+              <tr><td>3</td><td class="num">4.67</td><td>无查杀/关键信息时，首日发言隐藏身份伪装村民，避免成为首要刀口。</td></tr>
+              <tr><td>4</td><td class="num">4.59</td><td>投票阶段主动投怀疑对象或明狼，切勿弃票，以展示立场争取归票。</td></tr>
+              <tr><td>5</td><td class="num">4.46</td><td>起跳后若无人对跳且查验清晰，应带头明确归票，切忌弃票被狼人冲票。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:24px;">好人自进化 — 女巫 Top 5</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>归一化</th><th>策略内容</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="num">6.67</td><td>首夜救人后第一天白天明确跳身份报银水，以正视角避免好人互踩或被狼人利用。</td></tr>
+              <tr><td>2</td><td class="num">6.29</td><td>跳明身份后第一天不宜全程弃票，结合发言参与归票，尤其有对跳/焦点位时主动出票压缩狼人空间。</td></tr>
+              <tr><td>3</td><td class="num">6.25</td><td>未跳身份时发言避免直接点银水或透露知晓平安夜原因，用模糊表述隐藏自己。</td></tr>
+              <tr><td>4</td><td class="num">6.25</td><td>用解药救刀口后尽早拍明身份报银水，建立明好人视角带队，避免好人内耗。</td></tr>
+              <tr><td>5</td><td class="num">5.76</td><td>首夜若无关键信息，优先用解药，避免神职过早出局导致轮次落后。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:24px;">好人自进化 — 猎人 Top 5</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>归一化</th><th>策略内容</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="num">7.69</td><td>已有明确跳身份且无人对跳的神职带队时，猎人隐藏身份、跟随明神归票，避免暴露多余信息。</td></tr>
+              <tr><td>2</td><td class="num">7.23</td><td>女巫和预言家均已跳明且无人对跳时，猎人隐藏身份优先跟随金/银水归票，观察投票异动。</td></tr>
+              <tr><td>3</td><td class="num">7.00</td><td>首日无明确查验威胁或放逐压力时，伪装村民发言，避免主动跳身份被狼人锁定。</td></tr>
+              <tr><td>4</td><td class="num">6.67</td><td>平安夜且预言家已跳无对跳时，猎人可暂不跳身份，保留狼人误刀/战术变化空间。</td></tr>
+              <tr><td>5</td><td class="num">6.33</td><td>首日平安夜且女巫预言家均跳出无对跳时，发言以鼓励信息分析为主，避免过早暴露。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:24px;">好人自进化 — 村民 Top 5</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>归一化</th><th>策略内容</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="num">8.17</td><td>仅一名预言家起跳且逻辑合理无人对跳时，果断认其为真，基于查验结果重估身份。</td></tr>
+              <tr><td>2</td><td class="num">7.50</td><td>女巫首夜救人并跳明报银水后，快速接受银水为好人、认同其带队。</td></tr>
+              <tr><td>3</td><td class="num">6.55</td><td>有玩家起跳神职且无人对跳时，迅速更新判断坚定站边，协助归票。</td></tr>
+              <tr><td>4</td><td class="num">5.88</td><td>已认定预言家后，即使未确定狼人，也应投不站边或逻辑偏匪者，防预言家被冲。</td></tr>
+              <tr><td>5</td><td class="num">5.71</td><td>预言家起跳查杀且无人对跳时，将其置信度设高、被查杀者设为狼。</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="section-desc">高价值策略高度集中在身份起跳/对跳处理、归票纪律、神职隐藏与保护等中后期决策上，与前三节定量结论一致。</p>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title">总体结论</h2>
+        <div class="conclusion-box">
+          <p><strong>1. 好人自进化是成功的</strong>：胜率 +27.5pp、投中狼人率 +14.2pp，且身份推断在中后期明显变强，三条证据链一致。</p>
+          <p><strong>2. 狼人自进化收益有限</strong>：仅学到轻微伪装（暴露率 −3.7pp），但受限于狼人胜负机制，未能转化为胜率（+2.5pp）。</p>
+          <p><strong>3. 自进化主要提升「局内中后期」的推理质量</strong>：第1天之后的 masked accuracy 跨局增益全面大于第1天，说明记忆复用在信息更丰富的中后期才能充分发挥作用。</p>
+        </div>
+
+        <div class="next-prev">
+          <a class="prev" href="./agent.html"><small>上一章</small>Agent 认知架构</a>
+          <a class="next" href="./console.html"><small>下一章</small>实验台设计 →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p>Werewolf-AI · Apache License 2.0</p></div>
+  </footer>
+</body>
+</html>

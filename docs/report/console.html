@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实验台设计 — Werewolf-AI</title>
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container inner">
+      <a class="brand" href="./">
+        <span>Werewolf-AI</span>
+      </a>
+      <nav class="nav">
+        <a href="./">概述</a>
+        <a href="./architecture.html">架构</a>
+        <a href="./game-system.html">游戏系统</a>
+        <a href="./agent.html">Agent</a>
+        <a href="./experiments.html">实验</a>
+        <a href="./console.html" class="active">实验台</a>
+        <a href="https://github.com/XBQNRCM/werewolf-ai" class="nav-gh" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <div class="kicker">05 / Platform</div>
+        <h1>实验台设计</h1>
+        <p>
+          批量编排与观测平台：稳健的多房间实验调度、断点续跑与自愈、实时监控与错误诊断、
+          细粒度回放（含 LLM trace）以及多切面离线分析脚本。它只编排，不复制局内事实。
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">1</span>定位与边界</h2>
+        <p class="lead-block">实验台的边界很窄：不代理局内 action、不中转 pending action、不复制完整局内事实。胜负与 replay 以 game-system 为准；认知与 LLM trace 以 agent DB 为准；实验库只保存调度记录与跨系统 ID。</p>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <span class="tag">负责</span>
+            <h3>编排与观测</h3>
+            <ul>
+              <li>实验配置与 spec 快照</li>
+              <li>多房间并行、多局串行调度</li>
+              <li>Agent session 通知与 ready 等待</li>
+              <li>固定角色 + 公开名重排</li>
+              <li>runner events、summary、错误抽屉</li>
+              <li>观战/回放入口与 LLM trace 查询</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="tag">不负责</span>
+            <h3>交还给其他服务</h3>
+            <ul>
+              <li>狼人杀规则与状态机（game-system）</li>
+              <li>局内 pending action 代理</li>
+              <li>Agent prompt 解析（agent）</li>
+              <li>复制局内事件 / 快照 / raw output</li>
+              <li>强制终止进行中的游戏</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">2</span>Runner 编排流程</h2>
+        <div class="pipeline">
+          <div class="step"><span class="step-k">1</span><span class="step-t">创建实验</span><span class="step-d">POST experiments · 存 spec</span></div>
+          <div class="step"><span class="step-k">2</span><span class="step-t">创建房间</span><span class="step-d">game-system POST rooms</span></div>
+          <div class="step"><span class="step-k">3</span><span class="step-t">通知 Agent</span><span class="step-d">POST sessions</span></div>
+          <div class="step"><span class="step-k">4</span><span class="step-t">等待 ready</span><span class="step-d">轮询成员状态</span></div>
+          <div class="step"><span class="step-k">5</span><span class="step-t">开局</span><span class="step-d">aliases + role_overrides</span></div>
+          <div class="step"><span class="step-k">6</span><span class="step-t">等待结束</span><span class="step-d">轮询 winner</span></div>
+          <div class="step"><span class="step-k">7</span><span class="step-t">下一局</span><span class="step-d">复盘后再 ready</span></div>
+        </div>
+        <p class="prose" style="margin-top:18px;">房间是实验调度单元：一个实验房间映射一个游戏系统房间，可连续运行多局。<code>max_parallel_rooms</code> 控制并发；Agent 直接轮询/提交动作，runner 只负责开局与记录完成状态。固定角色通过 <code>fixed_role</code> 展开为每局的 alias-keyed <code>role_overrides</code>，配合 <code>public_name_pool</code> 实现「角色固定、公开名每局重排」。</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">3</span>断点续跑与自愈</h2>
+        <p class="section-desc">长时间批量实验不可避免遇到网络波动、Agent 超时或进程重启。runner 内置多条恢复路径，使实验可以从中断点继续，而不是从头重跑。</p>
+        <div class="card-grid">
+          <article class="card">
+            <h3>房间恢复</h3>
+            <p>已创建游戏房间但实验库未写入 room id 时，通过 <code>room_info.experiment_room_id</code> 从游戏系统房间列表找回，不重复建房。</p>
+          </article>
+          <article class="card">
+            <h3>对局恢复</h3>
+            <p>实验记录 <code>running</code> 但游戏已结束则补齐完成状态；检测到僵尸进行中游戏则 <code>void_game</code> 后重开。</p>
+          </article>
+          <article class="card">
+            <h3>Agent 恢复</h3>
+            <p>旧 session 已停止或失效时，先停止残留 session，再重新通知 Agent 创建新 session 继续剩余局数。</p>
+          </article>
+        </div>
+        <div class="callout">
+          <p>失败、恢复、作废与清理都写入 <code>runner_events</code>，供前端错误抽屉与排查使用。取消实验仅停止后续调度；已进入 <code>in_game</code> 的对局仍由游戏系统与 Agent 自然完成，不被强杀。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">4</span>实时监控与诊断</h2>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <h3>实验详情页</h3>
+            <ul>
+              <li>启动 / 暂停 / 恢复 / 取消</li>
+              <li>房间矩阵：状态、完成局数、Agent slot 状态</li>
+              <li>对局列表：进入观战、回放或错误抽屉</li>
+              <li>Runner 事件：按全部 / 错误 / 房间 / 对局过滤</li>
+              <li>导出实验配置与 summary JSON</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>错误抽屉</h3>
+            <ul>
+              <li>聚合目标对象、后端 ID 与最近错误</li>
+              <li>关联 runner events 上下文</li>
+              <li>实验级 <code>error_summary</code> 与房间级 <code>last_error</code></li>
+              <li>Agent 通知 / 加入状态追踪</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">5</span>细粒度回放与 LLM Trace</h2>
+        <p class="section-desc"><code>GameViewer</code> 直接访问游戏系统接口，不经实验后端代理局内数据。god 视角可联动 Agent 数据库中的 <code>llm_calls</code>，实现 case-by-case 的决策分析。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>模式</th><th>能力</th></tr></thead>
+            <tbody>
+              <tr><td>Live</td><td>游戏系统 <code>/view</code>、<code>/events</code>、<code>/pending-actions</code> + WebSocket；pending inspector 展示 ActionContext 详情</td></tr>
+              <tr><td>Replay</td><td>按 replay frame 查看 action context、visible state、action response、events、state_after</td></tr>
+              <tr><td>过滤</td><td>按 phase、actor、action type、event type、raw output、invalid action 过滤；可一键跳到下一条非法动作</td></tr>
+              <tr><td>LLM Trace</td><td>god 视角 + Agent DB：查看每次 belief/decision/review 的真实 request/response payload</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout good">
+          <p>完整复盘链路：<code>game-system replay frame</code>（局内事实）+ <code>agent llm_calls</code>（模型输入输出）+ <code>runner_events</code>（调度日志），三者对齐即可逐帧还原「模型看到什么、做了什么、造成什么结果」。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">6</span>分析脚本</h2>
+        <p class="section-desc"><code>werewolf-experiments/analysis</code> 以实验库为入口，回到 game-system replay 与 agent DB，从多个切面导出指标与图表。实验报告中的图表均由这些脚本生成。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>产物</th><th>内容</th></tr></thead>
+            <tbody>
+              <tr><td><code>game_summary.csv</code></td><td>每局胜负、天数、frame 数</td></tr>
+              <tr><td><code>vote_metrics.csv</code></td><td>投票一致性、投中狼人率、狼人暴露率</td></tr>
+              <tr><td><code>belief_metrics.csv</code></td><td>身份推断准确率（含 masked 口径）</td></tr>
+              <tr><td><code>memory_metrics.csv</code></td><td>memory 写入、helpful 率、score 变化</td></tr>
+              <tr><td><code>decision_memory_metrics.csv</code></td><td>每次决策的 memory 选用与 fallback 情况</td></tr>
+              <tr><td><code>postgame_review_metrics.csv</code></td><td>复盘成功率、belief/decision 错误计数</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="prose">分析维度覆盖：按 <code>game_index</code> 的学习曲线、按 day/phase 的推断异质性、按角色的 memory 创建与复用、按 room 的独立重复轨迹。多口径并用（按局 / 按房间 / 按决策）使「闭环是否真的发生」可被分别验证。</p>
+
+        <div class="next-prev">
+          <a class="prev" href="./experiments.html"><small>上一章</small>实验设计与结果</a>
+          <a class="next" href="./"><small>返回</small>概述</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p>Werewolf-AI · Apache License 2.0</p></div>
+  </footer>
+</body>
+</html>

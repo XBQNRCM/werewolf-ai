@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent 认知架构 — Werewolf-AI</title>
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container inner">
+      <a class="brand" href="./">
+        <span>Werewolf-AI</span>
+      </a>
+      <nav class="nav">
+        <a href="./">概述</a>
+        <a href="./architecture.html">架构</a>
+        <a href="./game-system.html">游戏系统</a>
+        <a href="./agent.html" class="active">Agent</a>
+        <a href="./experiments.html">实验</a>
+        <a href="./console.html">实验台</a>
+        <a href="https://github.com/XBQNRCM/werewolf-ai" class="nav-gh" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="container">
+        <div class="kicker">03 / Agent</div>
+        <h1>Agent 认知架构</h1>
+        <p>
+          一套 Profile-driven runtime 服务所有角色与对局变体。Agent 不维护长对话历史，而是基于引擎下发的可见状态
+          做 section 化上下文拼接；belief、strategy memory 与 postgame review 共同构成可消融、可复盘、可自进化的决策闭环。
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">1</span>Session Loop 与 Profile</h2>
+        <p class="lead-block">实验变量由 profile 表达，而非复制代码或长期分支。session 创建时即固化完整 config 快照，使历史实验始终可解释。</p>
+        <div class="pipeline">
+          <div class="step"><span class="step-k">session</span><span class="step-t">创建</span><span class="step-d">加载 profile · join · 首次 ready</span></div>
+          <div class="step"><span class="step-k">poll</span><span class="step-t">轮询</span><span class="step-d">取最新 game 的 pending</span></div>
+          <div class="step"><span class="step-k">belief</span><span class="step-t">推断</span><span class="step-d">可选 · 按 bucket 触发</span></div>
+          <div class="step"><span class="step-k">strategy</span><span class="step-t">召回</span><span class="step-d">static pack + room memory</span></div>
+          <div class="step"><span class="step-k">decision</span><span class="step-t">决策</span><span class="step-d">约束在 legal_actions 内</span></div>
+          <div class="step"><span class="step-k">submit</span><span class="step-t">提交</span><span class="step-d">POST actions</span></div>
+          <div class="step"><span class="step-k">review</span><span class="step-t">复盘</span><span class="step-d">终局写 memory · 再 ready</span></div>
+        </div>
+        <p class="prose" style="margin-top:18px;">同一 runtime 通过替换 <code>profile_id</code> 就能比较「是否推断」「推断是否进入行动」「是否注入静态打法」「是否允许局后自进化」等变量。profile 还承担模型路由：<code>module_models</code> 允许 belief、decision、postgame review 各用不同模型、温度与超时。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Profile</th><th>Belief</th><th>进入决策</th><th>Strategy</th><th>Postgame</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td><code>baseline_v1</code></td><td>yes</td><td>no</td><td>none</td><td>no</td><td>预测可观测、决策不吃推断的基线</td></tr>
+              <tr><td><code>belief_decision_v1</code></td><td>yes</td><td>yes</td><td>none</td><td>no</td><td>验证推断进入决策的收益</td></tr>
+              <tr><td><code>static_strategy_v1</code></td><td>yes</td><td>yes</td><td>static</td><td>no</td><td>验证只读打法知识</td></tr>
+              <tr><td><code>self_evolve_v1</code></td><td>yes</td><td>yes</td><td>room_memory</td><td>yes</td><td>完整自进化实验组</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">2</span>Section 化上下文管理</h2>
+        <p class="section-desc">每次 LLM call 的输入直接由引擎传来的可见状态组装，整理成带标题、来源与优先级的 <code>ContextSection</code> 再按优先级渲染，而非维护一段不可审计的长 prompt。</p>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <span class="tag">belief prompt</span>
+            <h3>身份推断上下文</h3>
+            <ul>
+              <li>【对局玩家信息】私有身份与可见玩家状态</li>
+              <li>【本局规则】<code>rules_text</code></li>
+              <li>【当前可见时间线】裁剪后的事件</li>
+              <li>【上一轮身份推断摘要】同局链式传递</li>
+              <li>【推断经验】<code>phase=belief</code> 的 room memory</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="tag">decision prompt</span>
+            <h3>行动决策上下文</h3>
+            <ul>
+              <li>【行动指令】+【合法行动】逐条列出</li>
+              <li>【对局玩家信息】+【当前可见时间线】</li>
+              <li>【最近一次身份推断摘要】profile 允许时</li>
+              <li>【基础打法】static + 【对局经验】memory top 5</li>
+              <li>【狼队夜聊协商】狼人夜间协作场景</li>
+            </ul>
+          </article>
+        </div>
+        <div class="callout teal">
+          <p>每个 section 都保留「信息来自哪里」：规则来自 game-system，推断来自 agent cache，策略来自 static pack 或 room memory，复盘真相来自 god replay。排查坏 case 时可直接回看 <code>llm_calls.request_payload.messages</code>，确认模型当时看到的信息边界。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">3</span>Belief：带证据的身份推断</h2>
+        <p class="section-desc">belief 只做可见视角内的认知建模。它结合上一轮同局推断保持推理一致性，并要求模型输出置信度与 evidence——LSPO 的消融实验表明这类结构化约束能有效抑制幻觉。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>字段</th><th>含义</th></tr></thead>
+            <tbody>
+              <tr><td><code>deduced_role</code></td><td>当前最可能身份（受限于角色枚举）</td></tr>
+              <tr><td><code>role_confidence</code></td><td>对推测身份的自报置信度（1–10）</td></tr>
+              <tr><td><code>statement_reliability</code></td><td>该玩家发言可信度（0–10）</td></tr>
+              <tr><td><code>reasoning</code> / <code>evidence</code></td><td>简短推理与引用可见事件的可读证据</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <h3>触发与缓存</h3>
+            <ul>
+              <li>除第一晚外，每次行动前触发 full deduction</li>
+              <li><code>_belief_bucket</code> 让狼人夜聊后的 kill 复用同一轮推断</li>
+              <li>模型上下文只保留同局最近一次 deduction</li>
+              <li>数据库保留每一次 snapshot，供细粒度机制分析</li>
+              <li>新 <code>game_id</code> 清空 cache，避免跨局污染</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>失败降级</h3>
+            <ul>
+              <li>JSON / 枚举 / 越界校验失败 → repair 重试一次</li>
+              <li>repair 仍失败 → deterministic fallback</li>
+              <li>fallback 给已知身份 10 分，其余默认 villager / 5 分</li>
+              <li>首次错误与 <code>llm_call_ids</code> 写入 <code>validation_result</code></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="tight">
+      <div class="container">
+        <h2 class="section-title"><span class="num">4</span>Strategy Memory 与自进化</h2>
+        <p class="lead-block">自进化被刻意收窄成 memory 写入：局后复盘可以提出新经验，但只能写入 <code>room_id + agent_identity_id</code> 范围的策略记忆，不改代码、不改固定策略包，也不让模型给自己打分。</p>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <h3>召回规则（确定性）</h3>
+            <ul>
+              <li>按 <code>role</code> / <code>phase</code> 过滤匹配</li>
+              <li>age-normalized score 排序：<code>score / lifespan</code></li>
+              <li>精确 role/phase 优先于通用（null）</li>
+              <li>取 top 5 注入 decision 或 belief prompt</li>
+              <li>软约束：当前局面与 <code>legal_actions</code> 优先级最高</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Score 更新（确定性）</h3>
+            <ul>
+              <li>出现在 <code>helpful_memories</code>：<code>+8</code></li>
+              <li>本阵营获胜且 helpful：额外 <code>+2</code></li>
+              <li>上限 100；第一版不做失败扣分</li>
+              <li><code>new_memories</code> 不得写入具体玩家公开名</li>
+            </ul>
+          </article>
+        </div>
+        <h3 style="margin:28px 0 10px;">Postgame Review</h3>
+        <p class="prose">复盘 prompt 的核心价值是把「模型当时知道什么」与「终局真相是什么」放在同一条时间线上：它能区分 belief 错误（当时推断错了）与 decision 错误（有信息但行动没用好）。</p>
+        <pre class="code">输入：god replay + 本局 deduction/action 轨迹 + 已有 active memory + 胜负结果
+输出：summary · belief_errors · decision_errors · helpful_memories(≤4) · new_memories
+
+自进化闭环：
+  多局对战 → 保存 belief/action/replay 轨迹
+  → 终局复盘产生少量候选经验 → 写入 room-scoped memory
+  → 下局按 role/phase/归一化得分召回 → 决策在软约束下参考经验</pre>
+        <div class="callout good">
+          <p>每条 memory 都可追溯到 <code>source_game_id</code>、<code>profile_id</code>、<code>postgame_review_id</code> 与当时的 LLM call。这让自进化更像「经验召回」而非把历史结论当作新事实灌入，也保留了版本回溯能力。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2 class="section-title"><span class="num">5</span>持久化与 LLM Trace</h2>
+        <p class="section-desc">可观测性是一等公民。每次 deduction、decision、postgame review 与真实 LLM 调用都有结构化记录，并通过 ID 互相链接。</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>表</th><th>记录内容</th></tr></thead>
+            <tbody>
+              <tr><td><code>agent_sessions</code></td><td>session 生命周期与 resolved config 快照</td></tr>
+              <tr><td><code>deduction_runs</code> / <code>deduction_players</code></td><td>每次 belief update 及 per-player 判断</td></tr>
+              <tr><td><code>action_decisions</code></td><td>行动决策、选用的 strategy/memory、validation 结果</td></tr>
+              <tr><td><code>strategy_memories</code></td><td>room-scoped 自进化策略记忆</td></tr>
+              <tr><td><code>postgame_reviews</code></td><td>复盘摘要与 belief/decision 错误分析</td></tr>
+              <tr><td><code>llm_calls</code></td><td>真实请求/响应审计，链接到具体 action / deduction / review</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">
+          <p><strong>解耦思考与提交</strong>：已保存但未成功提交的 decision 会被复用、重新 submit，而不是重新调用 LLM——避免一次网络失败触发重复思考与行为漂移。终局处理完成后再次 <code>set_ready(true)</code>，以支持同房多局串行。</p>
+        </div>
+
+        <div class="next-prev">
+          <a class="prev" href="./game-system.html"><small>上一章</small>游戏系统后端</a>
+          <a class="next" href="./experiments.html"><small>下一章</small>实验设计与结果 →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container"><p>Werewolf-AI · Apache License 2.0</p></div>
+  </footer>
+</body>
+</html>
