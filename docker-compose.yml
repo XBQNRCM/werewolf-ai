@@ -1,0 +1,141 @@
+name: werewolf-ai
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-werewolf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-werewolf}
+      POSTGRES_DB: ${POSTGRES_DB:-werewolf_game}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-werewolf} -d ${POSTGRES_DB:-werewolf_game}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  game-backend:
+    build:
+      context: ./werewolf-game-system/backend
+    restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-werewolf}:${POSTGRES_PASSWORD:-werewolf}@postgres:5432/${POSTGRES_DB:-werewolf_game}
+      DATABASE_SCHEMA: werewolf_app
+      ALLOWED_ORIGINS: ${GAME_ALLOWED_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080,http://localhost:5174,http://127.0.0.1:5174}
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import json,sys,urllib.request; payload=json.load(urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)); sys.exit(0 if payload.get('status') == 'ok' else 1)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  game-frontend:
+    build:
+      context: ./werewolf-game-system/frontend
+    restart: unless-stopped
+    depends_on:
+      game-backend:
+        condition: service_healthy
+    ports:
+      - "${GAME_FRONTEND_PORT:-8080}:80"
+
+  agent:
+    build:
+      context: ./werewolf-agent
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      game-backend:
+        condition: service_healthy
+    environment:
+      AGENT_NAME: ${AGENT_NAME:-docker}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-werewolf}:${POSTGRES_PASSWORD:-werewolf}@postgres:5432/werewolf_agent
+      POLL_INTERVAL_MS: ${POLL_INTERVAL_MS:-800}
+      ARK_API_KEY: ${ARK_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      AUTODL_API_KEY: ${AUTODL_API_KEY:-}
+    expose:
+      - "9001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import json,sys,urllib.request; payload=json.load(urllib.request.urlopen('http://127.0.0.1:9001/health', timeout=5)); sys.exit(0 if payload.get('status') == 'ok' else 1)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  experiment-backend:
+    build:
+      context: ./werewolf-experiments/backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      game-backend:
+        condition: service_healthy
+      agent:
+        condition: service_healthy
+    environment:
+      EXPERIMENT_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-werewolf}:${POSTGRES_PASSWORD:-werewolf}@postgres:5432/${POSTGRES_DB:-werewolf_game}
+      EXPERIMENT_DATABASE_SCHEMA: werewolf_experiments
+      INTERNAL_GAME_BACKEND_URL: http://game-backend:8000
+      AGENT_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-werewolf}:${POSTGRES_PASSWORD:-werewolf}@postgres:5432/werewolf_agent
+      ALLOWED_ORIGINS: ${EXPERIMENT_ALLOWED_ORIGINS:-http://localhost:5174,http://127.0.0.1:5174,http://localhost:8080,http://127.0.0.1:8080}
+      AGENT_READY_TIMEOUT_SECONDS: ${AGENT_READY_TIMEOUT_SECONDS:-300}
+    expose:
+      - "8100"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import json,sys,urllib.request; payload=json.load(urllib.request.urlopen('http://127.0.0.1:8100/health', timeout=5)); sys.exit(0 if payload.get('status') == 'ok' else 1)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 25s
+
+  experiment-frontend:
+    build:
+      context: ./werewolf-experiments/frontend
+      args:
+        VITE_EXPERIMENT_API_BASE: /api
+    restart: unless-stopped
+    depends_on:
+      experiment-backend:
+        condition: service_healthy
+      game-backend:
+        condition: service_healthy
+    ports:
+      - "${EXPERIMENT_FRONTEND_PORT:-5174}:80"
+
+volumes:
+  postgres_data:

@@ -1,0 +1,21 @@
+{
+  "name": "docker-smoke-one-game",
+  "description": "Docker compose smoke: one 6-player baseline game",
+  "game_backend_base_url": "http://127.0.0.1:5174/game-api",
+  "global_seed": "docker-smoke-001",
+  "room_count": 1,
+  "games_per_room": 1,
+  "max_parallel_rooms": 1,
+  "room": {
+    "player_count": 6,
+    "rules": {}
+  },
+  "agents": [
+    {
+      "user_name_template": "agent_{experiment_id}_{room_index}_{slot}",
+      "agent_endpoint": "http://agent:9001",
+      "profile_id": "baseline_v1",
+      "user_info": { "type": "ai" }
+    }
+  ]
+}

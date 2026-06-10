@@ -1,0 +1,9 @@
+[submodule "werewolf-game-system"]
+	path = werewolf-game-system
+	url = https://github.com/XBQNRCM/werewolf-game-system.git
+[submodule "werewolf-agent"]
+	path = werewolf-agent
+	url = https://github.com/odsbaron/werewolf-agent.git
+[submodule "werewolf-experiments"]
+	path = werewolf-experiments
+	url = https://github.com/XBQNRCM/werewolf-experiments.git
