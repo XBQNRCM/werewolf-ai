@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Werewolf-AI — 多智能体狼人杀系统</title>
-  <meta name="description" content="对局引擎、Profile-driven Agent 与批量实验平台：不完全信息下的多智能体协作、博弈与跨局自进化。">
+  <meta name="description" content="对局事实源、认知与决策 Agent、批量实验平台：不完全信息下的多智能体协作、博弈与跨局自进化。">
   <link rel="stylesheet" href="./site.css">
 </head>
 <body>
@@ -31,10 +31,10 @@
         <h1>Werewolf-AI</h1>
         <p class="subtitle">面向多智能体协作、博弈与自进化的狼人杀系统</p>
         <p class="abstract">
-          我们构建了一个以对局引擎为推理内核的多智能体狼人杀系统。引擎负责规则状态机与服务端信息隔离，
-          对真人与 AI 提供同一套接入协议；Agent 作为独立决策服务，基于引擎下发的可见状态完成身份推断、策略召回与行动决策，
-          并在终局通过复盘把经验沉淀为跨局策略记忆；实验平台负责批量编排对照实验、断点续跑与全链路可观测分析。
-          在此之上，我们验证了跨局自进化对好人阵营胜率、投票质量与中后期推理能力的显著提升。
+          我们构建了一套可观测、可消融、可跨局自进化的多智能体狼人杀系统。游戏系统提供权威规则状态机、服务端信息隔离与统一动作协议；
+          Agent 作为独立决策服务，基于可见状态完成身份推断、策略召回、合法行动决策与终局复盘；
+          实验平台负责批量编排对照实验、断点续跑与全链路可观测分析。
+          基于这套闭环，我们验证了跨局策略记忆对好人阵营胜率、投票质量与中后期推理能力的显著提升。
         </p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="./experiments.html">查看实验结果</a>
@@ -52,19 +52,19 @@
     <section id="system">
       <div class="container">
         <h2 class="section-title"><span class="num">1</span>系统构成</h2>
-        <p class="section-desc">三个边界清晰、可独立演进的服务，通过公开协议协作。规则正确性、Agent 决策与实验编排互不耦合。</p>
+        <p class="section-desc">系统拆成三个边界清晰、可独立演进的服务：游戏系统保证规则与事实可信，Agent 负责玩家认知与行动，实验平台负责批量验证效果。</p>
         <div class="layers">
           <div class="layer-item">
-            <div class="layer-name">game-system<small>推理内核</small></div>
-            <p>房间与多局生命周期、规则状态机、角色技能调度、<code>public/player/god</code> 三类视角裁剪、pending action 协议、事件流、状态快照与 replay frame。它只回答「这局发生了什么」，不理解模型与策略。</p>
+            <div class="layer-name">game-system<small>对局事实源</small></div>
+            <p>负责房间与多局生命周期、规则状态机、角色技能调度、合法行动生成、玩家视角裁剪、事件流、状态快照与回放。它提供所有对局事实的权威来源：决定当前局面、可见信息和合法动作，不参与 Agent 推理、策略记忆或实验分组。</p>
           </div>
           <div class="layer-item">
-            <div class="layer-name">agent<small>玩家决策服务</small></div>
-            <p>Session loop 驱动的 Profile-driven Agent。基于引擎下发的可见状态做 section 化上下文拼接，执行 belief → strategy → decision → postgame review，维护 room-scoped 策略记忆，并落库全链路 LLM trace。</p>
+            <div class="layer-name">agent<small>认知与决策服务</small></div>
+            <p>每个 AI 玩家以独立会话运行，基于游戏系统下发的可见状态组织决策上下文，完成身份推断、策略召回、合法行动决策与终局复盘，并维护可追溯的跨局策略记忆和 LLM 调用记录。</p>
           </div>
           <div class="layer-item">
-            <div class="layer-name">experiments<small>批量编排与分析</small></div>
-            <p>多房间并行、多局串行、固定角色与公开名重排；断点续跑与自愈；实时观战、细粒度回放（含 LLM call）与多切面离线分析脚本。只编排，不复制局内事实。</p>
+            <div class="layer-name">experiments<small>对照实验与分析平台</small></div>
+            <p>支持多房间并行、多局串行、多 Agent 配置、多模型与多角色设置的批量实验；提供断点续跑、失败恢复、实时观战、细粒度回放与多切面离线分析。它只负责编排和分析，不复制局内事实。</p>
           </div>
         </div>
       </div>
@@ -73,37 +73,37 @@
     <section id="contributions">
       <div class="container">
         <h2 class="section-title"><span class="num">2</span>核心设计</h2>
-        <p class="section-desc">几个我们认为值得展开的工程与方法决策。</p>
+        <p class="section-desc">这些设计把“能跑完一局”推进到“可验证、可复盘、可持续改进”的 Agent Team 实验系统。</p>
         <div class="card-grid">
           <article class="card">
-            <span class="tag">isolation</span>
-            <h3>服务端信息隔离</h3>
-            <p>三类视角在后端统一裁剪，覆盖事件、WebSocket、快照与回放。Agent 拿到的始终是裁剪后的可见状态，无需也无法自行维护隐藏事实。</p>
+            <span class="tag">视角隔离</span>
+            <h3>每个玩家只看到该看的信息</h3>
+            <p>公开视角、玩家视角和复盘视角都由服务端统一生成。无论是前端、Agent 还是回放接口，都不能绕过后端裁剪拿到隐藏身份、夜间行动或私有技能结果。</p>
           </article>
           <article class="card">
-            <span class="tag">homogeneous</span>
-            <h3>控制器无差别接入</h3>
-            <p>真人、AI 与实验 runner 走同一套 join / ready / pending / submit 协议。同一引擎既支撑真人体验，也支撑批量 Agent 实验。</p>
+            <span class="tag">统一协议</span>
+            <h3>真人、AI 和实验脚本共用动作入口</h3>
+            <p>所有参与者都先读取当前合法动作，再提交结构化行动；规则校验始终在游戏系统完成。因此同一套对局内核既能支撑人机混战，也能支撑批量自动实验。</p>
           </article>
           <article class="card">
-            <span class="tag">profile</span>
-            <h3>Profile 表达实验变量</h3>
-            <p>baseline、belief、static strategy、self-evolve 等变体由 profile 表达，一套 runtime 服务所有变体。session 创建即固化 config 快照，历史实验可解释。</p>
+            <span class="tag">配置实验</span>
+            <h3>用配置切换 Agent 能力</h3>
+            <p>是否做身份推断、是否把推断用于行动、是否使用固定策略、是否开启局后复盘，都通过配置切换。同一套运行时代码即可支撑 baseline、自进化和多模型对照。</p>
           </article>
           <article class="card">
-            <span class="tag">context</span>
-            <h3>Section 化上下文</h3>
-            <p>每次 LLM call 的输入直接由可见状态组装成带标题、来源、优先级的 section，而非维护长 message 历史。信息边界清晰、可审计。</p>
+            <span class="tag">可审计</span>
+            <h3>模型当时看到了什么可以回放</h3>
+            <p>发给模型的信息会按规则说明、可见事件、身份判断、策略经验等来源整理，并记录每次真实调用。出错时可以回看输入边界，而不是只看到一个最终动作。</p>
           </article>
           <article class="card">
-            <span class="tag">belief</span>
-            <h3>带证据的身份推断</h3>
-            <p>belief 结合上一轮推断保持一致性，要求输出置信度与 evidence 以抑制幻觉，并完整落库每次推断快照供细粒度机制分析。</p>
+            <span class="tag">推断决策</span>
+            <h3>先判断身份，再选择行动</h3>
+            <p>Agent 会先对可见玩家做身份判断和置信度估计，再在合法动作集合内选择发言、投票或技能目标。推断结果既能单独评估，也能注入决策做消融对比。</p>
           </article>
           <article class="card">
-            <span class="tag">self-evolve</span>
-            <h3>受约束的自进化</h3>
-            <p>复盘只能写入 room-scoped 策略记忆，不改代码或固定策略包；helpful 加分由确定性规则完成。下一局按 role/phase/归一化得分召回。</p>
+            <span class="tag">跨局进化</span>
+            <h3>复盘沉淀经验，但不放任模型自改</h3>
+            <p>终局复盘只能写入可追溯的策略记忆，不直接改代码、规则或固定策略包；记忆是否有用由后续对局反馈更新。下一局再按角色和阶段召回高价值经验。</p>
           </article>
         </div>
       </div>
@@ -143,7 +143,7 @@
           <a class="nav-card" href="./architecture.html">
             <span class="nav-card-index">01 / Architecture</span>
             <h3>整体架构</h3>
-            <p>推理内核 + 多控制面 + 外部决策服务；身份与信息隔离的三层命名；数据事实源与典型数据流。</p>
+            <p>对局事实源、玩家决策层与实验控制台如何分工协作；三类身份命名、信息隔离边界与典型数据流。</p>
             <span class="arrow">阅读 →</span>
           </a>
           <a class="nav-card" href="./game-system.html">
@@ -155,7 +155,7 @@
           <a class="nav-card" href="./agent.html">
             <span class="nav-card-index">03 / Agent</span>
             <h3>Agent 认知架构</h3>
-            <p>session loop 与 profile、section 化上下文、belief / strategy memory / postgame review 与持久化。</p>
+            <p>AI 玩家如何组织可见信息、推断身份、召回策略、提交行动，并在终局复盘中沉淀跨局经验。</p>
             <span class="arrow">阅读 →</span>
           </a>
           <a class="nav-card" href="./experiments.html">

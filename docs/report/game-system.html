@@ -30,7 +30,7 @@
         <div class="kicker">02 / Game System</div>
         <h1>游戏系统后端</h1>
         <p>
-          推理内核：对局状态机与技能调度、服务端信息隔离、event / frame / replay，
+          对局事实源：规则状态机与技能调度、服务端信息隔离、事件 / 快照 / 回放，
           以及「REST 确认事实、WebSocket 提示刷新」的通信机制。所有局内正确性都在后端完成。
         </p>
       </div>
@@ -38,8 +38,8 @@
 
     <section>
       <div class="container">
-        <h2 class="section-title"><span class="num">1</span>对局引擎与技能调度</h2>
-        <p class="lead-block">角色技能被统一抽象为「某个阶段向某些玩家生成合法行动」。引擎不直接调用 Agent，只根据 <code>GameState</code> 生成 pending action，等待外部提交动作后再推进。</p>
+        <h2 class="section-title"><span class="num">1</span>房间、对局与技能调度</h2>
+        <p class="lead-block">游戏系统先管理长期存在的房间，再在房间中串行启动一局局具体对局。每局内部，角色技能被统一抽象为「某个阶段向某些玩家生成合法行动」；引擎不直接调用 Agent，只等待外部提交动作后推进状态。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>阶段</th><th>行动者</th><th>合法动作</th></tr></thead>
@@ -54,7 +54,11 @@
             </tbody>
           </table>
         </div>
-        <p class="prose">支持 6/8/10/12 人局与五类角色（狼人、预言家、女巫、猎人、村民），屠边胜负。房间是长期容器、可串行多局——这对 Agent 跨局复盘与实验同房多局至关重要；每局由 <code>room_seed + game_index</code> 派生 <code>game_seed</code>，可复现且不重复。</p>
+        <figure class="figure-block compact-figure" style="margin-top:24px;">
+          <img src="./assets/images/architecture.png" alt="游戏后端、房间、玩家与多局对局生命周期示意图">
+          <figcaption>同一个游戏后端维护多个房间；房间内可以混合真人与 Agent，并在一段时间内串行运行多局对局。room 承载成员与多局生命周期，game 承载单局角色、事件、动作与胜负事实。</figcaption>
+        </figure>
+        <p class="prose">支持 6/8/10/12 人局与五类角色（狼人、预言家、女巫、猎人、村民），采用屠边胜负。房间作为长期容器，是 Agent 跨局复盘和实验同房多局的基础；每局由 <code>room_seed + game_index</code> 派生 <code>game_seed</code>，保证可复现且不会重复同一随机过程。</p>
       </div>
     </section>
 
@@ -68,7 +72,7 @@
             <tbody>
               <tr><td><code>public</code></td><td>观战、公开回放</td><td>公开玩家状态、公开事件、发言、投票与结算；夜间统一折叠为 <code>night</code>。</td></tr>
               <tr><td><code>player</code></td><td>真人/Agent 决策、玩家回放</td><td>公开信息 + 自己身份与私有事件；狼人可见队友身份与狼队事件。</td></tr>
-              <tr><td><code>god</code></td><td>调试、实验复盘</td><td>完整服务端状态、全部事件、动作请求/响应与 replay frame。</td></tr>
+              <tr><td><code>god</code></td><td>调试、实验复盘</td><td>完整服务端状态、全部事件、动作请求/响应与回放帧。</td></tr>
             </tbody>
           </table>
         </div>
@@ -97,10 +101,28 @@
 
     <section>
       <div class="container">
-        <h2 class="section-title"><span class="num">3</span>Event、Frame 与 Replay</h2>
-        <p class="section-desc">持久化目标是让对局可恢复、可回放、可分析。回放不是前端缓存，而是后端根据事件、快照、动作请求与动作响应组装。</p>
+        <h2 class="section-title"><span class="num">3</span>事件、快照与可回放链路</h2>
+        <p class="section-desc">持久化目标是让对局可恢复、可回放、可分析。游戏系统不仅保存最终状态，也保存“谁在什么视角下做了什么，以及这次动作如何改变局面”。</p>
+        <div class="card-grid cols-2">
+          <article class="card">
+            <h3>Event：发生过的事实</h3>
+            <p>事件是追加式事实流，记录阶段切换、发言、投票、技能结果、死亡和胜负等变化。每条事件带可见性，因此同一局可以裁剪成公开视角、玩家视角或复盘视角。</p>
+          </article>
+          <article class="card">
+            <h3>Snapshot：某一刻的完整状态</h3>
+            <p>快照保存动作结算后的服务端状态，包括阶段、存活、角色、技能使用、投票容器等。它让系统可以恢复对局，也能核对事件流是否正确推进了状态。</p>
+          </article>
+          <article class="card">
+            <h3>Action Request / Response：决策边界</h3>
+            <p>动作请求记录行动者当时看到的可见状态和合法动作；动作响应记录实际提交的行动、是否被接受以及产生的事件范围。它回答“当时能做什么”和“最后做了什么”。</p>
+          </article>
+          <article class="card">
+            <h3>Replay Frame：可复盘片段</h3>
+            <p>回放帧把一次动作请求、动作响应、产生事件和结算后状态串在一起。前端用它播放对局，实验和 Agent 复盘用它追踪决策输入与后果。</p>
+          </article>
+        </div>
         <pre class="code">action_request  →  action_response  →  events  →  state_after</pre>
-        <p class="prose">上述链路构成一个 <strong>replay frame</strong>：它完整记录了行动者当时看到什么（<code>visible_state</code>）、能做什么（<code>legal_actions</code>）、实际提交了什么（<code>action_response</code>），以及状态如何被推进（<code>events</code> + <code>state_after</code>）。事件本身携带 <code>visibility</code> 与可选 <code>user_name</code>，在所有输出路径统一过滤；因此同一份 frame 既适合前端播放，也适合人工排查与 Agent 复盘。</p>
+        <p class="prose">这条链路保证回放不是前端缓存，而是从服务端事实重建出来的决策过程。因为事件、动作请求和回放帧都会按视角裁剪，同一份底层数据既能安全给观众看，也能在可信复盘中还原完整上下文。</p>
       </div>
     </section>
 
@@ -109,7 +131,7 @@
         <h2 class="section-title"><span class="num">4</span>通信机制</h2>
         <p class="lead-block">REST 确认事实、WebSocket 提示刷新。客户端收到推送后重新拉取完整视图，而不依赖推送消息中的局部数据自行推断状态。</p>
 
-        <h3 style="margin:26px 0 10px;">Pending Action 与 Action Submit</h3>
+        <h3 style="margin:26px 0 10px;">待行动作与动作提交</h3>
         <div class="card-grid cols-2">
           <article class="card">
             <h3>ActionContext</h3>
@@ -140,7 +162,7 @@
     <section>
       <div class="container">
         <h2 class="section-title"><span class="num">5</span>多 Agent 协调</h2>
-        <p class="section-desc">游戏系统不内置 Agent 注册中心，也不代理 Agent 间的私下通信。协调通过状态机间接完成。</p>
+        <p class="section-desc">这里的“协调”不是中心控制器替 Agent 做决定，而是游戏状态机按规则分发行动机会；每个 Agent 只根据自己的可见上下文行动。</p>
         <div class="pipeline">
           <div class="step"><span class="step-k">1</span><span class="step-t">加入房间</span><span class="step-d">以普通玩家身份 join</span></div>
           <div class="step"><span class="step-k">2</span><span class="step-t">准备</span><span class="step-d">自己 set_ready</span></div>
@@ -148,7 +170,8 @@
           <div class="step"><span class="step-k">4</span><span class="step-t">决策</span><span class="step-d">读取 ActionContext</span></div>
           <div class="step"><span class="step-k">5</span><span class="step-t">提交</span><span class="step-d">POST actions</span></div>
         </div>
-        <p class="prose">狼人夜聊以 <code>werewolf_chat</code> 动作与 <code>werewolf</code> 可见性记录；白天讨论以 <code>speak</code> 公开发言承载；多局实验中的公开名通过 <code>player_aliases</code> 每局重排。无论按玩家轮询还是 <code>scope=all</code> 集中拉取，动作提交都经过同一个校验入口，编排不会绕过规则或信息隔离。</p>
+        <p class="prose">一局游戏推进时，后端只暴露当前玩家真正可执行的动作：轮到狼人夜聊，就只让狼人提交队内可见的 <code>werewolf_chat</code>；轮到白天发言，就让存活玩家提交公开的 <code>speak</code>；轮到投票或技能，也只给出当前合法目标。Agent 之间的协作因此发生在游戏规则允许的发言、夜聊、投票和技能动作里，而不是通过额外的私有通道。</p>
+        <p class="prose">实验平台可以集中查看哪些玩家正在等待行动，但它不能替游戏系统判定合法性。无论是单个 Agent 自己轮询，还是实验侧批量调度，最终动作都必须提交到同一个后端入口，由同一套规则校验、信息隔离和状态推进逻辑处理。</p>
 
         <div class="next-prev">
           <a class="prev" href="./architecture.html"><small>上一章</small>整体架构</a>

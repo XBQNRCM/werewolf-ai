@@ -101,7 +101,10 @@
     <section>
       <div class="container">
         <h2 class="section-title"><span class="num">3</span>Belief：带证据的身份推断</h2>
-        <p class="section-desc">belief 只做可见视角内的认知建模。它结合上一轮同局推断保持推理一致性，并要求模型输出置信度与 evidence——LSPO 的消融实验表明这类结构化约束能有效抑制幻觉。</p>
+        <p class="section-desc">belief 只做可见视角内的认知建模。它结合上一轮同局推断保持推理一致性，并要求模型输出置信度与 evidence。</p>
+        <div class="callout">
+          <p>LSPO 的消融实验表明，在狼人杀场景中要求模型给出置信度与可见证据，有助于抑制无依据身份判断。来源：Xu et al., <a href="https://arxiv.org/abs/2502.04686" target="_blank" rel="noopener"><em>Learning Strategic Language Agents in the Werewolf Game with Iterative Latent Space Policy Optimization</em></a>, arXiv:2502.04686, 2025。</p>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>字段</th><th>含义</th></tr></thead>

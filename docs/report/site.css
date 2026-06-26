@@ -394,6 +394,11 @@ a.nav-card .arrow { color: var(--teal); font-size: 0.88rem; margin-top: 12px; di
   padding: 16px;
   margin: 0 0 22px;
 }
+.figure-block.compact-figure {
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
 .figure-block img { border-radius: var(--radius-sm); }
 .mermaid { text-align: center; line-height: 1.5; }
 .mermaid svg { max-width: 100%; height: auto; }

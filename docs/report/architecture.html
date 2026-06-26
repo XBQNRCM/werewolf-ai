@@ -30,8 +30,8 @@
         <div class="kicker">01 / Architecture</div>
         <h1>整体架构</h1>
         <p>
-          对局内核 + 多控制面 + 外部决策服务。游戏后端只负责房间与对局事实；
-          真人、脚本、LLM Agent 与实验 runner 都通过同一套公开协议接入，规则层不区分控制器类型。
+          对局事实源 + 多控制面 + 外部决策服务。游戏后端只维护规则、状态和可见事实；
+          真人、AI 玩家与实验编排器都通过同一套公开协议接入，规则层不区分控制器类型。
         </p>
       </div>
     </section>
@@ -40,8 +40,8 @@
       <div class="container">
         <h2 class="section-title"><span class="num">1</span>设计取向</h2>
         <div class="prose">
-          <p>系统最关键的一个决策是：把「狼人杀规则」「玩家决策」「实验编排」三件事彻底分开。游戏后端是唯一的局内事实源，只维护对局发生了什么；它不理解某个玩家背后是真人、浏览器脚本、Agent Player Server 还是实验 runner。</p>
-          <p>这样拆分的收益是同一个引擎既能支撑真人体验，也能支撑批量 Agent 实验；上层入口可以各自按产品体验或实验效率演进，而不必把规则、视角隔离、Agent prompt 和实验统计揉进同一个系统。</p>
+          <p>系统最关键的决策是把「狼人杀规则」「玩家决策」「实验编排」三件事拆开。游戏后端是唯一的局内事实源，负责判断当前局面、可见信息和合法动作；Agent 只基于可见状态做推理与行动；实验平台只组织多局对照和结果分析。</p>
+          <p>这样拆分后，同一套对局规则既能支撑真人体验，也能支撑批量 Agent 实验。前端可以专注交互，Agent 可以专注决策质量，实验台可以专注可复现验证，三者不会互相污染边界。</p>
         </div>
         <figure class="figure-block" style="margin-top:24px;">
           <div class="mermaid">
@@ -55,34 +55,34 @@ flowchart TB
 
   subgraph game["游戏系统 · werewolf-game-system"]
     GameBackend["游戏后端<br/>房间 · 状态机 · 技能 · 视角裁剪 · 事件"]
-    GameStore[("游戏库 werewolf_app<br/>events · snapshots · actions · replay")]
+    GameStore[("游戏库 werewolf_app<br/>事件 · 快照 · 动作 · 回放")]
   end
 
   subgraph agent["Agent 决策层 · werewolf-agent"]
-    AgentServer["Agent Player Server<br/>session loop"]
-    Cognition["认知<br/>belief · strategy · decision"]
-    Memory["跨局记忆<br/>strategy memory · 复盘"]
-    Profile["Profiles · 角色变体配置"]
-    AgentStore[("Agent 库 werewolf_agent<br/>推断 · 决策 · 记忆 · LLM trace")]
+    AgentServer["Agent 服务<br/>独立玩家会话"]
+    Cognition["认知与行动<br/>身份推断 · 策略召回 · 合法决策"]
+    Memory["跨局学习<br/>策略记忆 · 终局复盘"]
+    Profile["能力配置<br/>实验变体 · 模型路由"]
+    AgentStore[("Agent 库 werewolf_agent<br/>推断 · 决策 · 记忆 · 模型调用")]
   end
 
   subgraph exp["实验平台 · werewolf-experiments"]
-    ExpBackend["实验后端<br/>Runner 编排 · 失败恢复 · summary"]
-    ExpStore[("实验库 werewolf_experiments<br/>调度 · 房间/对局映射 · runner events")]
+    ExpBackend["实验后端<br/>批量编排 · 失败恢复 · 实验摘要"]
+    ExpStore[("实验库 werewolf_experiments<br/>调度 · 房间/对局映射 · 调度事件")]
   end
 
   Human --> GameUI
   GameUI -->|"房间 / 准备 / 开局 / 动作 / 视角 (REST+WS)"| GameBackend
-  GameUI -->|"AI 补位：创建 / 停止 session"| AgentServer
+  GameUI -->|"AI 补位：创建 / 停止 AI 会话"| AgentServer
 
   ExpFE -->|"编排 / 监控 (REST)"| ExpBackend
   ExpFE -->|"观战 / 回放 / 上帝视角 (REST+WS)"| GameBackend
-  ExpBackend -->|"Runner：建房 / 开局 / 回收 / summary (HTTP)"| GameBackend
-  ExpBackend -->|"创建 / 停止 session"| AgentServer
+  ExpBackend -->|"实验任务：建房 / 开局 / 回收 / 摘要 (HTTP)"| GameBackend
+  ExpBackend -->|"创建 / 停止 AI 会话"| AgentServer
   ExpBackend --> ExpStore
-  ExpBackend -. "只读 LLM trace" .-> AgentStore
+  ExpBackend -. "只读模型调用记录" .-> AgentStore
 
-  AgentServer -->|"join / 准备 / pending / 动作 / god replay 复盘"| GameBackend
+  AgentServer -->|"join / 准备 / 待行动作 / 提交动作 / 终局复盘"| GameBackend
   AgentServer --> Profile
   AgentServer --> Cognition
   Cognition <--> Memory
@@ -105,39 +105,34 @@ flowchart TB
   style agent fill:#170f14,stroke:#3a1f27,color:#9aa1b2;
   style exp fill:#16120c,stroke:#3a3120,color:#9aa1b2;
           </div>
-          <figcaption>总体架构与跨系统数据流：游戏后端是唯一局内事实源，真人前端 / Agent / 实验 Runner 共用同一套接入协议；实箭头为写入或主调用，虚箭头为只读访问。</figcaption>
-        </figure>
-
-        <figure class="figure-block" style="margin-top:24px;">
-          <img src="./assets/images/architecture.png" alt="系统架构图">
-          <figcaption>游戏系统 = 局内事实源；Agent = 玩家决策层；实验平台 = 批量编排与分析入口。</figcaption>
+          <figcaption>总体架构与跨系统数据流：游戏后端是唯一局内事实源，真人前端、Agent 与实验编排器共用同一套接入协议；实箭头为写入或主调用，虚箭头为只读访问。</figcaption>
         </figure>
       </div>
     </section>
 
     <section class="tight">
       <div class="container">
-        <h2 class="section-title"><span class="num">2</span>游戏系统只认识玩家与动作</h2>
-        <p class="section-desc">核心对象是 <code>room</code>、<code>game</code>、<code>player</code>、<code>ActionContext</code> 与 <code>ActionSubmit</code>。同构接入体现在三条路径上，它们共享同一套局内动作协议。</p>
+        <h2 class="section-title"><span class="num">2</span>统一动作协议</h2>
+        <p class="section-desc">游戏系统不关心玩家背后是真人、AI 服务还是实验脚本。所有控制器都读取当前合法动作，再提交结构化行动，由后端统一校验和推进状态。</p>
         <div class="card-grid">
           <article class="card">
-            <span class="tag">human</span>
+            <span class="tag">真人</span>
             <h3>真人</h3>
-            <p>游戏前端 join → ready → 查询 pending action → 提交动作 → 拉取 view / events / replay。</p>
+            <p>通过游戏前端加入房间、准备、读取待行动作、提交发言/投票/技能，并查看实时视图与回放。</p>
           </article>
           <article class="card">
-            <span class="tag">ai backfill</span>
+            <span class="tag">AI 补位</span>
             <h3>AI 补位</h3>
-            <p>游戏前端创建 Agent session；随后 Agent 自己 join、ready、轮询 pending action 并提交动作。</p>
+            <p>前端只负责创建 AI 玩家会话；之后 Agent 像普通玩家一样加入、准备、轮询待行动作并提交决策。</p>
           </article>
           <article class="card">
-            <span class="tag">batch</span>
+            <span class="tag">批量实验</span>
             <h3>批量实验</h3>
-            <p>实验 runner 创建房间、创建 Agent session、等待 ready 并开局；局内动作仍由 Agent 直接提交。</p>
+            <p>实验编排器批量创建房间和 Agent 会话、等待就绪并开局；局内动作仍由 Agent 直接连到游戏系统提交。</p>
           </article>
         </div>
         <div class="callout">
-          <p>因此游戏系统的职责保持稳定：它只维护「这局游戏发生了什么」，不维护「为什么某个控制器这样决策」。规则正确性与信息隔离全部在后端完成。</p>
+          <p>这个设计让规则正确性、行动合法性和信息隔离始终由后端保证；Agent 的推理过程和实验平台的调度策略不会渗入对局规则层。</p>
         </div>
       </div>
     </section>
@@ -161,13 +156,13 @@ flowchart TB
               <tr>
                 <td>实验控制台</td>
                 <td>对照实验、批量迭代、诊断</td>
-                <td>多房间并行、多局串行、固定角色、公开名重排、summary、LLM trace、live/replay</td>
+                <td>多房间并行、多局串行、灵活实验配置、实验摘要、模型调用记录、观战与回放</td>
                 <td>狼人杀规则、局内动作代理、prompt 解析</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p class="prose">需要房间、对局、事件、视角或 replay 时，它们回到游戏系统读取；需要 Agent 内部推理与模型调用时，实验控制台回到 Agent 数据库读取。</p>
+        <p class="prose">需要房间、对局、事件、视角或回放时，控制面回到游戏系统读取；需要 Agent 内部推理与模型调用时，实验控制台回到 Agent 数据库读取。</p>
       </div>
     </section>
 
@@ -202,18 +197,18 @@ flowchart TB
 ├── schema werewolf_app          # game-system：局内事实
 └── schema werewolf_experiments  # experiments：实验编排事实
 
-database: werewolf_agent         # agent：认知、决策、记忆与 LLM trace</pre>
+database: werewolf_agent         # agent：认知、决策、记忆与模型调用记录</pre>
         <div class="table-wrap">
           <table>
             <thead><tr><th>数据类型</th><th>归属</th></tr></thead>
             <tbody>
-              <tr><td>胜负、角色、死亡、事件、动作上下文/响应、快照、replay</td><td>game-system</td></tr>
-              <tr><td>实验配置、房间/对局映射、runner events、summary 引用</td><td>experiments</td></tr>
-              <tr><td>belief、decision、postgame review、strategy memory、LLM 调用链路</td><td>agent</td></tr>
+              <tr><td>胜负、角色、死亡、事件、动作上下文/响应、快照、回放</td><td>game-system</td></tr>
+              <tr><td>实验配置、房间/对局映射、调度事件、实验摘要引用</td><td>experiments</td></tr>
+              <tr><td>身份推断、行动决策、终局复盘、策略记忆、模型调用链路</td><td>agent</td></tr>
             </tbody>
           </table>
         </div>
-        <p class="prose">这种归属约定避免同一局游戏在多个库中出现两份事实，也让各服务可以独立演进。replay、LLM trace 与 runner events 三者共同构成完整的复盘链路。</p>
+        <p class="prose">这种归属约定避免同一局游戏在多个库中出现两份事实，也让各服务可以独立演进。对局回放、模型调用记录与实验调度事件共同构成完整的复盘链路。</p>
 
         <div class="next-prev">
           <a class="prev" href="./"><small>上一章</small>概述</a>
