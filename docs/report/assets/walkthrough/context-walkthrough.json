@@ -1,0 +1,998 @@
+{
+  "meta": {
+    "player": "carol",
+    "self_role": "werewolf",
+    "profile_id": "self_evolve_v1",
+    "prior_memory_count": 53,
+    "day": 2,
+    "winner": "werewolf",
+    "alive_now": [
+      "erin",
+      "carol",
+      "heidi",
+      "dave"
+    ]
+  },
+  "intro": "一局 8 人自进化狼人杀的第 2 天。跟随一个自进化狼人玩家 carol 的「白天发言」决策，依次查看：游戏后端如何把权威状态裁剪成该玩家的 visible state，Agent 如何据此做身份推断（belief），如何组装行动决策（decision）prompt，以及终局后如何复盘（postgame review）并沉淀跨局记忆。",
+  "request": {
+    "day": 2,
+    "phase": "day_speech",
+    "subphase": null,
+    "user_name": "carol",
+    "state_version": 12,
+    "legal_actions": [
+      {
+        "action_type": "speak",
+        "target_user_names": []
+      }
+    ],
+    "action_instruction": {
+      "text": "现在是第2天白天发言阶段。轮到你发言，请发表一段公开发言。",
+      "response_format": "<JSON Schema · oneOf[speak]，强制结构化输出>"
+    },
+    "visible_state": "<按 carol 身份裁剪后的玩家视角，详见下方对比>"
+  },
+  "clipping": {
+    "cutoff_sequence": 50,
+    "raw_count": 50,
+    "visible_count": 34,
+    "hidden_count": 16,
+    "raw_events": [
+      {
+        "sequence": 1,
+        "day": 1,
+        "phase": "night_werewolf",
+        "visibility": "public",
+        "event_type": "game_started",
+        "text": "第1天 游戏开始，玩家入座：erin、alice、bob、carol、frank、heidi、dave、grace。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 2,
+        "day": 1,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "werewolf_chat_message",
+        "text": "第1天 carol 在狼人夜聊中发言：heidi，第一晚信息很少，我们得谨慎刀人。我建议先不刀跳预言家的，防止被女巫救。我倾向刀一个发言低调、身份不明的玩家，比如bob或frank，你觉得呢？",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 3,
+        "day": 1,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "werewolf_chat_message",
+        "text": "第1天 heidi 在狼人夜聊中发言：我同意你的看法，第一晚刀预言家风险太大。bob和frank都挺低调，我觉得bob更像村民，倾向于刀bob。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 4,
+        "day": 1,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "subphase_changed",
+        "text": "第1天 进入狼人击杀。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 5,
+        "day": 1,
+        "phase": "night_werewolf",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "第1天 carol 提交狼人击杀目标：bob。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 6,
+        "day": 1,
+        "phase": "night_werewolf",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "kill → bob",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 7,
+        "day": 1,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "wolf_target_decided",
+        "text": "第1天 狼队已确定夜晚击杀结果：bob（多数决定）。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 8,
+        "day": 1,
+        "phase": "night_seer",
+        "visibility": "private",
+        "event_type": "phase_changed",
+        "text": "进入阶段 night_seer",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 9,
+        "day": 1,
+        "phase": "night_seer",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "check → erin",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 10,
+        "day": 1,
+        "phase": "night_seer",
+        "visibility": "private",
+        "event_type": "seer_checked",
+        "text": "预言家查验 erin → good",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 11,
+        "day": 1,
+        "phase": "night_witch",
+        "visibility": "private",
+        "event_type": "phase_changed",
+        "text": "进入阶段 night_witch",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 12,
+        "day": 1,
+        "phase": "night_witch",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "skip",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 13,
+        "day": 1,
+        "phase": "night_witch",
+        "visibility": "public",
+        "event_type": "night_settled",
+        "text": "第1天 夜晚结算完成，死亡玩家：bob。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 14,
+        "day": 1,
+        "phase": "day_last_words",
+        "visibility": "public",
+        "event_type": "phase_changed",
+        "text": "第1天 进入遗言阶段。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 15,
+        "day": 1,
+        "phase": "day_last_words",
+        "visibility": "public",
+        "event_type": "last_word_spoken",
+        "text": "第1天 bob 发表遗言：我是平民，被刀出局了。大家注意找狼，我怀疑可能有人在带节奏。希望神职能发挥作用，带领好人获胜。加油！",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 16,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "phase_changed",
+        "text": "第1天 进入白天发言阶段。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 17,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第1天 erin 发言：大家好，我是女巫。昨晚bob被刀了，我没有救，因为首刀不确定身份。bob遗言说自己是平民，目前先相信他是好人。今天大家先别急着归票，我们听听所有人的发言再做决定。我建议先找一找有没有狼人在带节奏，如果有人急于把别人打成狼坑，我会重点怀疑。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 18,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第1天 alice 发言：大家好，我是猎人。首先，感谢女巫erin报出身份，目前bob遗言认平民，我们暂时认他是好人走。今天白天我不建议急着归票，先听听所有人的发言，尤其要注意谁在带节奏或者急于踩人。后面发言的玩家如果有什么逻辑漏洞，我会重点关注。我是一个猎人，如果被狼人刀了会开枪带走一个，所以狼人想刀我也要掂量一下。今天先按顺序发言，之后再决定投票。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 19,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第1天 carol 发言：大家好，我是carol，平民。女巫和猎人都跳了，目前信息不多，bob遗言认平民，我们先尊重。今天预言家还没起跳，有点奇怪，可能是在隐藏。我建议先听后面发言，重点关注那些发言模糊或者急于带节奏的人。目前我暂时没有特别怀疑的对象，跟着女巫和猎人走。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 20,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第1天 frank 发言：大家好，我是平民。目前女巫和猎人都已跳明，bob遗言认平民，暂时相信。预言家还没起跳，可能是想隐藏身份或憋一轮验人。今天先不急着归票，建议听完后面几位玩家的发言再做决定。我会重点关注那些发言前后矛盾或急于踩人的玩家。目前暂时没有明确怀疑对象，跟着女巫和猎人走。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 21,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第1天 heidi 发言：大家好，我是平民。目前女巫和猎人都跳出来了，bob遗言认平民，好人阵容基本清晰。预言家还没现身，可能是想藏一轮。我觉得今天可以先不要急着归票，等所有人发完言，看看有没有逻辑矛盾的地方。目前没有明确怀疑对象，跟着女巫和猎人走比较稳。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 22,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第1天 dave 发言：大家好，我是dave，平民。目前女巫和猎人都跳明了，bob遗言认平民，好人阵容比较清晰。预言家还没出现，可能是想隐藏一轮。我建议先听完grace的发言，再决定今天的投票。目前没有明显狼坑，暂时跟随女巫和猎人走，不要急着归票。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 23,
+        "day": 1,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第1天 grace 发言：大家好，我是预言家。昨晚我查验了erin，结果是好人。当前女巫和猎人都已经跳明，bob是平民出局，好人阵容比较清晰。今天我选择起跳，希望大家能相信我。既然erin是女巫且是好人，alice是猎人，那么剩下的玩家中还有两狼。今天我建议不要急着归票，先听所有人发言，明天我再报第二晚验人。如果有狼人想对跳，可以出来对线。谢谢。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 24,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "public",
+        "event_type": "phase_changed",
+        "text": "第1天 进入白天投票阶段。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 25,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "abstain",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 26,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "vote → grace",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 27,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "abstain",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 28,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "abstain",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 29,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "第1天 carol 选择弃票。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 30,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "abstain",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 31,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "abstain",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 32,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "public",
+        "event_type": "vote_settled",
+        "text": "第1天 白天投票结算完成，grace 得票最高并将被放逐；弃票：dave、carol、frank、grace、heidi、erin。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 33,
+        "day": 1,
+        "phase": "day_vote",
+        "visibility": "public",
+        "event_type": "player_exiled",
+        "text": "第1天 grace 被投票放逐。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 34,
+        "day": 1,
+        "phase": "day_last_words",
+        "visibility": "public",
+        "event_type": "phase_changed",
+        "text": "第1天 进入遗言阶段。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 35,
+        "day": 1,
+        "phase": "day_last_words",
+        "visibility": "public",
+        "event_type": "last_word_spoken",
+        "text": "第1天 grace 发表遗言：我是真预言家，昨晚验了erin是好人，所以女巫可信。今天我被放逐，说明狼人可能一直在带节奏。剩下的好人：alice猎人，erin女巫，bob平民已走，那么狼人就在carol、frank、heidi、dave当中。希望你们明天仔细分析他们的发言和投票，找出两狼。好人加油！",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 36,
+        "day": 2,
+        "phase": "night_werewolf",
+        "visibility": "private",
+        "event_type": "phase_changed",
+        "text": "进入阶段 night_werewolf",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 37,
+        "day": 2,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "werewolf_chat_message",
+        "text": "第2天 carol 在狼人夜聊中发言：heidi，第一晚我们刀了bob，他是平民。现在女巫erin和猎人alice都明牌了，预言家grace被放逐，局势对我们有利。今天白天我弃票了，你也是吧？现在剩frank和dave两个未知身份，大概率是村民。我建议今晚刀frank，他发言偏平民且比较低调，如果再拖可能被女巫毒或验。你觉得呢？",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 38,
+        "day": 2,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "werewolf_chat_message",
+        "text": "第2天 heidi 在狼人夜聊中发言：carol，我同意你的分析。我刚才也弃票了，没有暴露。frank发言确实偏平民且低调，dave也很中立，但frank更安静，刀他风险小，也能继续压缩村民数量。就按你说的，今晚刀frank，先把村民阵营减员，争取尽快进入屠边节奏。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 39,
+        "day": 2,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "subphase_changed",
+        "text": "第2天 进入狼人击杀。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 40,
+        "day": 2,
+        "phase": "night_werewolf",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "第2天 carol 提交狼人击杀目标：frank。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 41,
+        "day": 2,
+        "phase": "night_werewolf",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "kill → frank",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 42,
+        "day": 2,
+        "phase": "night_werewolf",
+        "visibility": "werewolf",
+        "event_type": "wolf_target_decided",
+        "text": "第2天 狼队已确定夜晚击杀结果：frank（多数决定）。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 43,
+        "day": 2,
+        "phase": "night_witch",
+        "visibility": "private",
+        "event_type": "phase_changed",
+        "text": "进入阶段 night_witch",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 44,
+        "day": 2,
+        "phase": "night_witch",
+        "visibility": "private",
+        "event_type": "action_submitted",
+        "text": "use_poison → alice",
+        "visible_to_self": false
+      },
+      {
+        "sequence": 45,
+        "day": 2,
+        "phase": "night_witch",
+        "visibility": "public",
+        "event_type": "night_settled",
+        "text": "第2天 夜晚结算完成，死亡玩家：frank、alice。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 46,
+        "day": 2,
+        "phase": "day_last_words",
+        "visibility": "public",
+        "event_type": "phase_changed",
+        "text": "第2天 进入遗言阶段。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 47,
+        "day": 2,
+        "phase": "day_last_words",
+        "visibility": "public",
+        "event_type": "last_word_spoken",
+        "text": "第2天 frank 发表遗言：我是平民，被狼人刀了。现在形势很清晰，女巫erin和猎人alice都是好人，预言家grace被投出局。狼人就在carol、heidi、dave当中。今晚狼人刀了我，说明他们想减少好人轮次。希望剩下的好人仔细分析发言和投票，找出两狼。我的遗言就这些，好人加油！",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 48,
+        "day": 2,
+        "phase": "day_last_words",
+        "visibility": "public",
+        "event_type": "last_word_spoken",
+        "text": "第2天 alice 发表遗言：我是猎人，昨晚被刀，我决定开枪带走carol。我怀疑carol是狼，因为她发言一直跟风，没有自己的视角。希望好人能利用这个信息，最终找出另一只狼。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 49,
+        "day": 2,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "phase_changed",
+        "text": "第2天 进入白天发言阶段。",
+        "visible_to_self": true
+      },
+      {
+        "sequence": 50,
+        "day": 2,
+        "phase": "day_speech",
+        "visibility": "public",
+        "event_type": "action_submitted",
+        "text": "第2天 erin 发言：我是女巫，昨晚我毒杀了alice，因为她第一天投票放逐了预言家，行为极像狼人。目前frank被刀，遗言认平民，应该可信。alice遗言说开枪带走carol，但她被我毒死，猎人被毒不能开枪，所以carol还活着。现在场上存活：我、carol、heidi、dave。预言家grace验了我好人，所以我是铁好。那么狼人就在carol、heidi、dave中，而且我怀疑alice是狼，那么另一狼可能在她队友中。今天我们要仔细听发言，找出剩下的两狼。我暂时偏向怀疑heidi和dave，因为carol被alice点名可能是好人。希望大家理性分析，不要盲目投票。",
+        "visible_to_self": true
+      }
+    ],
+    "clipped_events": [
+      {
+        "sequence": 1,
+        "phase": "night_werewolf",
+        "text": "第1天 游戏开始，玩家入座：erin、alice、bob、carol、frank、heidi、dave、grace。"
+      },
+      {
+        "sequence": 2,
+        "phase": "night_werewolf",
+        "text": "第1天 carol 在狼人夜聊中发言：heidi，第一晚信息很少，我们得谨慎刀人。我建议先不刀跳预言家的，防止被女巫救。我倾向刀一个发言低调、身份不明的玩家，比如bob或frank，你觉得呢？"
+      },
+      {
+        "sequence": 3,
+        "phase": "night_werewolf",
+        "text": "第1天 heidi 在狼人夜聊中发言：我同意你的看法，第一晚刀预言家风险太大。bob和frank都挺低调，我觉得bob更像村民，倾向于刀bob。"
+      },
+      {
+        "sequence": 4,
+        "phase": "night_werewolf",
+        "text": "第1天 进入狼人击杀。"
+      },
+      {
+        "sequence": 5,
+        "phase": "night_werewolf",
+        "text": "第1天 carol 提交狼人击杀目标：bob。"
+      },
+      {
+        "sequence": 7,
+        "phase": "night_werewolf",
+        "text": "第1天 狼队已确定夜晚击杀结果：bob（多数决定）。"
+      },
+      {
+        "sequence": 13,
+        "phase": "night_witch",
+        "text": "第1天 夜晚结算完成，死亡玩家：bob。"
+      },
+      {
+        "sequence": 14,
+        "phase": "day_last_words",
+        "text": "第1天 进入遗言阶段。"
+      },
+      {
+        "sequence": 15,
+        "phase": "day_last_words",
+        "text": "第1天 bob 发表遗言：我是平民，被刀出局了。大家注意找狼，我怀疑可能有人在带节奏。希望神职能发挥作用，带领好人获胜。加油！"
+      },
+      {
+        "sequence": 16,
+        "phase": "day_speech",
+        "text": "第1天 进入白天发言阶段。"
+      },
+      {
+        "sequence": 17,
+        "phase": "day_speech",
+        "text": "第1天 erin 发言：大家好，我是女巫。昨晚bob被刀了，我没有救，因为首刀不确定身份。bob遗言说自己是平民，目前先相信他是好人。今天大家先别急着归票，我们听听所有人的发言再做决定。我建议先找一找有没有狼人在带节奏，如果有人急于把别人打成狼坑，我会重点怀疑。"
+      },
+      {
+        "sequence": 18,
+        "phase": "day_speech",
+        "text": "第1天 alice 发言：大家好，我是猎人。首先，感谢女巫erin报出身份，目前bob遗言认平民，我们暂时认他是好人走。今天白天我不建议急着归票，先听听所有人的发言，尤其要注意谁在带节奏或者急于踩人。后面发言的玩家如果有什么逻辑漏洞，我会重点关注。我是一个猎人，如果被狼人刀了会开枪带走一个，所以狼人想刀我也要掂量一下。今天先按顺序发言，之后再决定投票。"
+      },
+      {
+        "sequence": 19,
+        "phase": "day_speech",
+        "text": "第1天 carol 发言：大家好，我是carol，平民。女巫和猎人都跳了，目前信息不多，bob遗言认平民，我们先尊重。今天预言家还没起跳，有点奇怪，可能是在隐藏。我建议先听后面发言，重点关注那些发言模糊或者急于带节奏的人。目前我暂时没有特别怀疑的对象，跟着女巫和猎人走。"
+      },
+      {
+        "sequence": 20,
+        "phase": "day_speech",
+        "text": "第1天 frank 发言：大家好，我是平民。目前女巫和猎人都已跳明，bob遗言认平民，暂时相信。预言家还没起跳，可能是想隐藏身份或憋一轮验人。今天先不急着归票，建议听完后面几位玩家的发言再做决定。我会重点关注那些发言前后矛盾或急于踩人的玩家。目前暂时没有明确怀疑对象，跟着女巫和猎人走。"
+      },
+      {
+        "sequence": 21,
+        "phase": "day_speech",
+        "text": "第1天 heidi 发言：大家好，我是平民。目前女巫和猎人都跳出来了，bob遗言认平民，好人阵容基本清晰。预言家还没现身，可能是想藏一轮。我觉得今天可以先不要急着归票，等所有人发完言，看看有没有逻辑矛盾的地方。目前没有明确怀疑对象，跟着女巫和猎人走比较稳。"
+      },
+      {
+        "sequence": 22,
+        "phase": "day_speech",
+        "text": "第1天 dave 发言：大家好，我是dave，平民。目前女巫和猎人都跳明了，bob遗言认平民，好人阵容比较清晰。预言家还没出现，可能是想隐藏一轮。我建议先听完grace的发言，再决定今天的投票。目前没有明显狼坑，暂时跟随女巫和猎人走，不要急着归票。"
+      },
+      {
+        "sequence": 23,
+        "phase": "day_speech",
+        "text": "第1天 grace 发言：大家好，我是预言家。昨晚我查验了erin，结果是好人。当前女巫和猎人都已经跳明，bob是平民出局，好人阵容比较清晰。今天我选择起跳，希望大家能相信我。既然erin是女巫且是好人，alice是猎人，那么剩下的玩家中还有两狼。今天我建议不要急着归票，先听所有人发言，明天我再报第二晚验人。如果有狼人想对跳，可以出来对线。谢谢。"
+      },
+      {
+        "sequence": 24,
+        "phase": "day_vote",
+        "text": "第1天 进入白天投票阶段。"
+      },
+      {
+        "sequence": 29,
+        "phase": "day_vote",
+        "text": "第1天 carol 选择弃票。"
+      },
+      {
+        "sequence": 32,
+        "phase": "day_vote",
+        "text": "第1天 白天投票结算完成，grace 得票最高并将被放逐；弃票：dave、carol、frank、grace、heidi、erin。"
+      },
+      {
+        "sequence": 33,
+        "phase": "day_vote",
+        "text": "第1天 grace 被投票放逐。"
+      },
+      {
+        "sequence": 34,
+        "phase": "day_last_words",
+        "text": "第1天 进入遗言阶段。"
+      },
+      {
+        "sequence": 35,
+        "phase": "day_last_words",
+        "text": "第1天 grace 发表遗言：我是真预言家，昨晚验了erin是好人，所以女巫可信。今天我被放逐，说明狼人可能一直在带节奏。剩下的好人：alice猎人，erin女巫，bob平民已走，那么狼人就在carol、frank、heidi、dave当中。希望你们明天仔细分析他们的发言和投票，找出两狼。好人加油！"
+      },
+      {
+        "sequence": 37,
+        "phase": "night_werewolf",
+        "text": "第2天 carol 在狼人夜聊中发言：heidi，第一晚我们刀了bob，他是平民。现在女巫erin和猎人alice都明牌了，预言家grace被放逐，局势对我们有利。今天白天我弃票了，你也是吧？现在剩frank和dave两个未知身份，大概率是村民。我建议今晚刀frank，他发言偏平民且比较低调，如果再拖可能被女巫毒或验。你觉得呢？"
+      },
+      {
+        "sequence": 38,
+        "phase": "night_werewolf",
+        "text": "第2天 heidi 在狼人夜聊中发言：carol，我同意你的分析。我刚才也弃票了，没有暴露。frank发言确实偏平民且低调，dave也很中立，但frank更安静，刀他风险小，也能继续压缩村民数量。就按你说的，今晚刀frank，先把村民阵营减员，争取尽快进入屠边节奏。"
+      },
+      {
+        "sequence": 39,
+        "phase": "night_werewolf",
+        "text": "第2天 进入狼人击杀。"
+      },
+      {
+        "sequence": 40,
+        "phase": "night_werewolf",
+        "text": "第2天 carol 提交狼人击杀目标：frank。"
+      },
+      {
+        "sequence": 42,
+        "phase": "night_werewolf",
+        "text": "第2天 狼队已确定夜晚击杀结果：frank（多数决定）。"
+      },
+      {
+        "sequence": 45,
+        "phase": "night_witch",
+        "text": "第2天 夜晚结算完成，死亡玩家：frank、alice。"
+      },
+      {
+        "sequence": 46,
+        "phase": "day_last_words",
+        "text": "第2天 进入遗言阶段。"
+      },
+      {
+        "sequence": 47,
+        "phase": "day_last_words",
+        "text": "第2天 frank 发表遗言：我是平民，被狼人刀了。现在形势很清晰，女巫erin和猎人alice都是好人，预言家grace被投出局。狼人就在carol、heidi、dave当中。今晚狼人刀了我，说明他们想减少好人轮次。希望剩下的好人仔细分析发言和投票，找出两狼。我的遗言就这些，好人加油！"
+      },
+      {
+        "sequence": 48,
+        "phase": "day_last_words",
+        "text": "第2天 alice 发表遗言：我是猎人，昨晚被刀，我决定开枪带走carol。我怀疑carol是狼，因为她发言一直跟风，没有自己的视角。希望好人能利用这个信息，最终找出另一只狼。"
+      },
+      {
+        "sequence": 49,
+        "phase": "day_speech",
+        "text": "第2天 进入白天发言阶段。"
+      },
+      {
+        "sequence": 50,
+        "phase": "day_speech",
+        "text": "第2天 erin 发言：我是女巫，昨晚我毒杀了alice，因为她第一天投票放逐了预言家，行为极像狼人。目前frank被刀，遗言认平民，应该可信。alice遗言说开枪带走carol，但她被我毒死，猎人被毒不能开枪，所以carol还活着。现在场上存活：我、carol、heidi、dave。预言家grace验了我好人，所以我是铁好。那么狼人就在carol、heidi、dave中，而且我怀疑alice是狼，那么另一狼可能在她队友中。今天我们要仔细听发言，找出剩下的两狼。我暂时偏向怀疑heidi和dave，因为carol被alice点名可能是好人。希望大家理性分析，不要盲目投票。"
+      }
+    ],
+    "self_role": "werewolf",
+    "known_wolves": [
+      "carol",
+      "heidi"
+    ],
+    "investigations": [],
+    "players": [
+      {
+        "user_name": "erin",
+        "alive": true,
+        "revealed_role": null
+      },
+      {
+        "user_name": "alice",
+        "alive": false,
+        "revealed_role": null
+      },
+      {
+        "user_name": "bob",
+        "alive": false,
+        "revealed_role": null
+      },
+      {
+        "user_name": "carol",
+        "alive": true,
+        "revealed_role": null
+      },
+      {
+        "user_name": "frank",
+        "alive": false,
+        "revealed_role": null
+      },
+      {
+        "user_name": "heidi",
+        "alive": true,
+        "revealed_role": null
+      },
+      {
+        "user_name": "dave",
+        "alive": true,
+        "revealed_role": null
+      },
+      {
+        "user_name": "grace",
+        "alive": false,
+        "revealed_role": null
+      }
+    ]
+  },
+  "belief": {
+    "players": [
+      {
+        "target_user_name": "alice",
+        "deduced_role": "hunter",
+        "role_confidence": 10.0,
+        "statement_reliability": 5.0,
+        "evidence": "第一天跳猎人，被女巫毒死，遗言带carol无效"
+      },
+      {
+        "target_user_name": "bob",
+        "deduced_role": "villager",
+        "role_confidence": 10.0,
+        "statement_reliability": 7.0,
+        "evidence": "狼队首刀，遗言认平民"
+      },
+      {
+        "target_user_name": "carol",
+        "deduced_role": "werewolf",
+        "role_confidence": 10.0,
+        "statement_reliability": 0.0,
+        "evidence": "已知身份"
+      },
+      {
+        "target_user_name": "dave",
+        "deduced_role": "villager",
+        "role_confidence": 9.0,
+        "statement_reliability": 4.0,
+        "evidence": "发言认平民，狼人已满，民坑只剩他"
+      },
+      {
+        "target_user_name": "erin",
+        "deduced_role": "witch",
+        "role_confidence": 10.0,
+        "statement_reliability": 10.0,
+        "evidence": "发言跳女巫，grace查她好人，自认毒alice"
+      },
+      {
+        "target_user_name": "frank",
+        "deduced_role": "villager",
+        "role_confidence": 10.0,
+        "statement_reliability": 7.0,
+        "evidence": "狼队第二刀，遗言认平民"
+      },
+      {
+        "target_user_name": "grace",
+        "deduced_role": "seer",
+        "role_confidence": 10.0,
+        "statement_reliability": 8.0,
+        "evidence": "发言查erin好人，被放逐遗言"
+      },
+      {
+        "target_user_name": "heidi",
+        "deduced_role": "werewolf",
+        "role_confidence": 10.0,
+        "statement_reliability": 0.0,
+        "evidence": "已知身份"
+      }
+    ],
+    "llm": {
+      "status": "succeeded",
+      "sections": [
+        {
+          "title": "对局玩家信息",
+          "content": "你是玩家 carol；你的身份：werewolf。\n你的狼人队友：heidi。\n当前可见玩家状态：erin、座位1、存活；alice、座位2、已出局；bob、座位3、已出局；carol、座位4、存活；frank、座位5、已出局；heidi、座位6、存活；dave、座位7、存活；grace、座位8、已出局"
+        },
+        {
+          "title": "本局规则",
+          "content": "8人局房间规格：狼人2名、预言家1名、女巫1名、猎人1名、村民3名。\n胜负条件：采用屠边规则。所有狼人出局则好人阵营获胜；所有神职或所有村民出局则狼人阵营获胜。\n夜晚顺序：狼人行动，预言家行动，女巫行动，然后统一结算死亡；猎人若因狼刀死亡且仍可开枪，会进入猎人开枪阶段。\n狼人：每晚共同决定一个击杀结果。若首次选择平票，进入一次重投；重投仍平票时系统在平票候选中随机决定。若存活狼人不少于2名，先进入狼人夜聊，再进入击杀。狼人可以选择空刀。\n预言家：每晚查验一名除自己以外的玩家，目标可以是存活或已出局玩家，只得到阵营结果。\n女巫：一局有一次解药和一次毒药；每个女巫行动阶段只能提交一个动作，可救当晚狼刀目标、毒一名存活玩家或跳过。\n白天流程：若有死亡且遗言开启，死亡玩家先发表一次遗言；随后存活玩家按座位顺序发言，再由存活玩家投票。\n投票：每名存活玩家一票，不能投自己，默认投给其他存活玩家。最高票者被放逐；若最高票平票，平票玩家进入 PK 发言，其他存活且非 PK 候选的玩家在候选中重投；重投仍平票则无人出局。本局允许弃票。\n猎人：猎人因狼刀或白天放逐死亡且游戏未结束时可以开枪；被女巫毒死、技能已用过或胜负已定时不能开枪。\n可选规则开关：遗言：开启；狼人夜聊：开启；狼人空刀：允许；死亡公开身份：不公开；投票弃票：允许。"
+        },
+        {
+          "title": "当前可见时间线",
+          "content": "- #1：第1天 游戏开始，玩家入座：erin、alice、bob、carol、frank、heidi、dave、grace。\n- #2：第1天 carol 在狼人夜聊中发言：heidi，第一晚信息很少，我们得谨慎刀人。我建议先不刀跳预言家的，防止被女巫救。我倾向刀一个发言低调、身份不明的玩家，比如bob或frank，你觉得呢？\n- #3：第1天 heidi 在狼人夜聊中发言：我同意你的看法，第一晚刀预言家风险太大。bob和frank都挺低调，我觉得bob更像村民，倾向于刀bob。\n- #4：第1天 进入狼人击杀。\n- #5：第1天 carol 提交狼人击杀目标：bob。\n- #7：第1天 狼队已确定夜晚击杀结果：bob（多数决定）。\n- #13：第1天 夜晚结算完成，死亡玩家：bob。\n- #14：第1天 进入遗言阶段。\n- #15：第1天 bob 发表遗言：我是平民，被刀出局了。大家注意找狼，我怀疑可能有人在带节奏。希望神职能发挥作用，带领好人获胜。加油！\n- #16：第1天 进入白天发言阶段。\n- #17：第1天 erin 发言：大家好，我是女巫。昨晚bob被刀了，我没有救，因为首刀不确定身份。bob遗言说自己是平民，目前先相信他是好人。今天大家先别急着归票，我们听听所有人的发言再做决定。我建议先找一找有没有狼人在带节奏，如果有人急于把别人打成狼坑，我会重点怀疑。\n- #18：第1天 alice 发言：大家好，我是猎人。首先，感谢女巫erin报出身份，目前bob遗言认平民，我们暂时认他是好人走。今天白天我不建议急着归票，先听听所有人的发言，尤其要注意谁在带节奏或者急于踩人。后面发言的玩家如果有什么逻辑漏洞，我会重点关注。我是一个猎人，如果被狼人刀了会开枪带走一个，所以狼人想刀我也要掂量一下。今天先按顺序发言，之后再决定投票。\n- #19：第1天 carol 发言：大家好，我是carol，平民。女巫和猎人都跳了，目前信息不多，bob遗言认平民，我们先尊重。今天预言家还没起跳，有点奇怪，可能是在隐藏。我建议先听后面发言，重点关注那些发言模糊或者急于带节奏的人。目前我暂时没有特别怀疑的对象，跟着女巫和猎人走。\n- #20：第1天 frank 发言：大家好，我是平民。目前女巫和猎人都已跳明，bob遗言认平民，暂时相信。预言家还没起跳，可能是想隐藏身份或憋一轮验人。今天先不急着归票，建议听完后面几位玩家的发言再做决定。我会重点关注那些发言前后矛盾或急于踩人的玩家。目前暂时没有明确怀疑对象，跟着女巫和猎人走。\n- #21：第1天 heidi 发言：大家好，我是平民。目前女巫和猎人都跳出来了，bob遗言认平民，好人阵容基本清晰。预言家还没现身，可能是想藏一轮。我觉得今天可以先不要急着归票，等所有人发完言，看看有没有逻辑矛盾的地方。目前没有明确怀疑对象，跟着女巫和猎人走比较稳。\n- #22：第1天 dave 发言：大家好，我是dave，平民。目前女巫和猎人都跳明了，bob遗言认平民，好人阵容比较清晰。预言家还没出现，可能是想隐藏一轮。我建议先听完grace的发言，再决定今天的投票。目前没有明显狼坑，暂时跟随女巫和猎人走，不要急着归票。\n- #23：第1天 grace 发言：大家好，我是预言家。昨晚我查验了erin，结果是好人。当前女巫和猎人都已经跳明，bob是平民出局，好人阵容比较清晰。今天我选择起跳，希望大家能相信我。既然erin是女巫且是好人，alice是猎人，那么剩下的玩家中还有两狼。今天我建议不要急着归票，先听所有人发言，明天我再报第二晚验人。如果有狼人想对跳，可以出来对线。谢谢。\n- #24：第1天 进入白天投票阶段。\n- #29：第1天 carol 选择弃票。\n- #32：第1天 白天投票结算完成，grace 得票最高并将被放逐；弃票：dave、carol、frank、grace、heidi、erin。\n- #33：第1天 grace 被投票放逐。\n- #34：第1天 进入遗言阶段。\n- #35：第1天 grace 发表遗言：我是真预言家，昨晚验了erin是好人，所以女巫可信。今天我被放逐，说明狼人可能一直在带节奏。剩下的好人：alice猎人，erin女巫，bob平民已走，那么狼人就在carol、frank、heidi、dave当中。希望你们明天仔细分析他们的发言和投票，找出两狼。好人加油！\n- #37：第2天 carol 在狼人夜聊中发言：heidi，第一晚我们刀了bob，他是平民。现在女巫erin和猎人alice都明牌了，预言家grace被放逐，局势对我们有利。今天白天我弃票了，你也是吧？现在剩frank和dave两个未知身份，大概率是村民。我建议今晚刀frank，他发言偏平民且比较低调，如果再拖可能被女巫毒或验。你觉得呢？\n- #38：第2天 heidi 在狼人夜聊中发言：carol，我同意你的分析。我刚才也弃票了，没有暴露。frank发言确实偏平民且低调，dave也很中立，但frank更安静，刀他风险小，也能继续压缩村民数量。就按你说的，今晚刀frank，先把村民阵营减员，争取尽快进入屠边节奏。\n- #39：第2天 进入狼人击杀。\n- #40：第2天 carol 提交狼人击杀目标：frank。\n- #42：第2天 狼队已确定夜晚击杀结果：frank（多数决定）。\n- #45：第2天 夜晚结算完成，死亡玩家：frank、alice。\n- #46：第2天 进入遗言阶段。\n- #47：第2天 frank 发表遗言：我是平民，被狼人刀了。现在形势很清晰，女巫erin和猎人alice都是好人，预言家grace被投出局。狼人就在carol、heidi、dave当中。今晚狼人刀了我，说明他们想减少好人轮次。希望剩下的好人仔细分析发言和投票，找出两狼。我的遗言就这些，好人加油！\n- #48：第2天 alice 发表遗言：我是猎人，昨晚被刀，我决定开枪带走carol。我怀疑carol是狼，因为她发言一直跟风，没有自己的视角。希望好人能利用这个信息，最终找出另一只狼。\n- #49：第2天 进入白天发言阶段。\n- #50：第2天 erin 发言：我是女巫，昨晚我毒杀了alice，因为她第一天投票放逐了预言家，行为极像狼人。目前frank被刀，遗言认平民，应该可信。alice遗言说开枪带走carol，但她被我毒死，猎人被毒不能开枪，所以carol还活着。现在场上存活：我、carol、heidi、dave。预言家grace验了我好人，所以我是铁好。那么狼人就在carol、heidi、dave中，而且我怀疑alice是狼，那么另一狼可能在她队友中。今天我们要仔细听发言，找出剩下的两狼。我暂时偏向怀疑heidi和dave，因为carol被alice点名可能是好人。希望大家理性分析，不要盲目投票。"
+        },
+        {
+          "title": "上一轮身份推断摘要",
+          "content": "erin：推测身份=witch，身份置信度=10.00，发言可信度=8.00，理由=自曝女巫且被预言家查好；证据：发言跳女巫，grace查她好人\nalice：推测身份=hunter，身份置信度=10.00，发言可信度=8.00，理由=自曝猎人且强调开枪价值；证据：明确跳猎人\nbob：推测身份=villager，身份置信度=10.00，发言可信度=7.00，理由=被刀出局遗言认平民；证据：遗言认平民，狼队刀他\ncarol：推测身份=werewolf，身份置信度=10.00，发言可信度=0.00，理由=自身是狼人；证据：已知身份\nfrank：推测身份=villager，身份置信度=8.00，发言可信度=4.00，理由=认平民且神职已满；证据：发言认平民，无神面\nheidi：推测身份=werewolf，身份置信度=10.00，发言可信度=0.00，理由=狼人队友；证据：已知身份\ndave：推测身份=villager，身份置信度=8.00，发言可信度=4.00，理由=认平民且神职已满；证据：发言认平民，无神面\ngrace：推测身份=seer，身份置信度=10.00，发言可信度=8.00，理由=跳预言家查好女巫无对跳；证据：发言查erin好人，被放逐遗言"
+        },
+        {
+          "title": "推断经验",
+          "content": "狼人应持续通过遗言和死亡信息推算神民分布，当连续刀中平民时，应坚定屠民路线，不轻易转刀神职，以最快达成胜利条件。\n狼人需时刻判断好人的信息差和心理，预测遗言和投票倾向，避免做出与整体局势不符的极端行为。\n身份推断应综合多轮发言、投票及死亡信息，不依赖单一证据，及时根据新信息调整判断，以防误判神民分布导致策略错误。\n身份推断应结合发言细节和行为逻辑，从首夜开始留意暗示神职的用词和心态。女巫可能无意间流露对解药或毒药的关切，猎人可能强调自身价值，这些线索应被及时捕捉并动态更新推断。\n在评估身份时，对于未明身份的玩家应保留多种可能性，尤其是对银水或疑似银水的玩家，要时刻考虑女巫或猎人面，避免误判导致刀口失误。\n推断经验来自本房间历史复盘，仅用于辅助身份推断；若与当前可见信息冲突，优先相信当前对局事实。"
+        },
+        {
+          "title": "输出格式",
+          "content": "只返回一个合法 JSON object，不要输出 Markdown、注释或额外解释。\n输出示例（按实际当前可见玩家替换 players 数组内容）：\n{\n  \"players\": [\n    {\n      \"target_user_name\": \"玩家名\",\n      \"deduced_role\": \"werewolf\",\n      \"role_confidence\": 8,\n      \"statement_reliability\": 6,\n      \"reasoning\": \"简短推理（20字内）\",\n      \"evidence\": \"关键证据\"\n    }\n  ]\n}\n必须为对局中的每个玩家输出一项（包括你自己，不论是否出局）。deduced_role 只能是 werewolf、seer、witch、hunter、villager；role_confidence 使用 1~10 数值刻度，表示你对该玩家身份推断的置信度估计；statement_reliability 使用 0~10 数值刻度，表示你对该玩家最近一次发言的可靠性评估（未发言或完全不可信可用 0）；reasoning 和 evidence 是一个可读字符串。"
+        }
+      ],
+      "response_text": "{\n  \"players\": [\n    {\n      \"target_user_name\": \"erin\",\n      \"deduced_role\": \"witch\",\n      \"role_confidence\": 10,\n      \"statement_reliability\": 10,\n      \"reasoning\": \"自曝女巫，被预言家查好\",\n      \"evidence\": \"发言跳女巫，grace查她好人，自认毒alice\"\n    },\n    {\n      \"target_user_name\": \"alice\",\n      \"deduced_role\": \"hunter\",\n      \"role_confidence\": 10,\n      \"statement_reliability\": 5,\n      \"reasoning\": \"自曝猎人，被毒死无法开枪\",\n      \"evidence\": \"第一天跳猎人，被女巫毒死，遗言带carol无效\"\n    },\n    {\n      \"target_user_name\": \"bob\",\n      \"deduced_role\": \"villager\",\n      \"role_confidence\": 10,\n      \"statement_reliability\": 7,\n      \"reasoning\": \"首刀出局，遗言认平民\",\n      \"evidence\": \"狼队首刀，遗言认平民\"\n    },\n    {\n      \"target_user_name\": \"carol\",\n      \"deduced_role\": \"werewolf\",\n      \"role_confidence\": 10,\n      \"statement_reliability\": 0,\n      \"reasoning\": \"自身是狼人\",\n      \"evidence\": \"已知身份\"\n    },\n    {\n      \"target_user_name\": \"frank\",\n      \"deduced_role\": \"villager\",\n      \"role_confidence\": 10,\n      \"statement_reliability\": 7,\n      \"reasoning\": \"被刀出局，遗言认平民\",\n      \"evidence\": \"狼队第二刀，遗言认平民\"\n    },\n    {\n      \"target_user_name\": \"heidi\",\n      \"deduced_role\": \"werewolf\",\n      \"role_confidence\": 10,\n      \"statement_reliability\": 0,\n      \"reasoning\": \"狼人队友\",\n      \"evidence\": \"已知身份\"\n    },\n    {\n      \"target_user_name\": \"dave\",\n      \"deduced_role\": \"villager\",\n      \"role_confidence\": 9,\n      \"statement_reliability\": 4,\n      \"reasoning\": \"剩余唯一村民坑位\",\n      \"evidence\": \"发言认平民，狼人已满，民坑只剩他\"\n    },\n    {\n      \"target_user_name\": \"grace\",\n      \"deduced_role\": \"seer\",\n      \"role_confidence\": 10,\n      \"statement_reliability\": 8,\n      \"reasoning\": \"跳预言家查女巫无对跳\",\n      \"evidence\": \"发言查erin好人，被放逐遗言\"\n    }\n  ]\n}"
+    }
+  },
+  "decision": {
+    "action_instruction": "现在是第2天白天发言阶段。轮到你发言，请发表一段公开发言。",
+    "llm": {
+      "status": "succeeded",
+      "sections": [
+        {
+          "title": "行动指令",
+          "content": "现在是第2天白天发言阶段。轮到你发言，请发表一段公开发言。"
+        },
+        {
+          "title": "合法行动",
+          "content": "- speak：不需要选择目标；需要填写中文 content。"
+        },
+        {
+          "title": "对局玩家信息",
+          "content": "你是玩家 carol；你的身份：werewolf。\n你的狼人队友：heidi。\n可见玩家：\n- erin：座位1，存活\n- alice：座位2，已出局\n- bob：座位3，已出局\n- carol：座位4，存活\n- frank：座位5，已出局\n- heidi：座位6，存活\n- dave：座位7，存活\n- grace：座位8，已出局"
+        },
+        {
+          "title": "本局规则",
+          "content": "8人局房间规格：狼人2名、预言家1名、女巫1名、猎人1名、村民3名。\n胜负条件：采用屠边规则。所有狼人出局则好人阵营获胜；所有神职或所有村民出局则狼人阵营获胜。\n夜晚顺序：狼人行动，预言家行动，女巫行动，然后统一结算死亡；猎人若因狼刀死亡且仍可开枪，会进入猎人开枪阶段。\n狼人：每晚共同决定一个击杀结果。若首次选择平票，进入一次重投；重投仍平票时系统在平票候选中随机决定。若存活狼人不少于2名，先进入狼人夜聊，再进入击杀。狼人可以选择空刀。\n预言家：每晚查验一名除自己以外的玩家，目标可以是存活或已出局玩家，只得到阵营结果。\n女巫：一局有一次解药和一次毒药；每个女巫行动阶段只能提交一个动作，可救当晚狼刀目标、毒一名存活玩家或跳过。\n白天流程：若有死亡且遗言开启，死亡玩家先发表一次遗言；随后存活玩家按座位顺序发言，再由存活玩家投票。\n投票：每名存活玩家一票，不能投自己，默认投给其他存活玩家。最高票者被放逐；若最高票平票，平票玩家进入 PK 发言，其他存活且非 PK 候选的玩家在候选中重投；重投仍平票则无人出局。本局允许弃票。\n猎人：猎人因狼刀或白天放逐死亡且游戏未结束时可以开枪；被女巫毒死、技能已用过或胜负已定时不能开枪。\n可选规则开关：遗言：开启；狼人夜聊：开启；狼人空刀：允许；死亡公开身份：不公开；投票弃票：允许。"
+        },
+        {
+          "title": "当前可见时间线",
+          "content": "- #1：第1天 游戏开始，玩家入座：erin、alice、bob、carol、frank、heidi、dave、grace。\n- #2：第1天 carol 在狼人夜聊中发言：heidi，第一晚信息很少，我们得谨慎刀人。我建议先不刀跳预言家的，防止被女巫救。我倾向刀一个发言低调、身份不明的玩家，比如bob或frank，你觉得呢？\n- #3：第1天 heidi 在狼人夜聊中发言：我同意你的看法，第一晚刀预言家风险太大。bob和frank都挺低调，我觉得bob更像村民，倾向于刀bob。\n- #4：第1天 进入狼人击杀。\n- #5：第1天 carol 提交狼人击杀目标：bob。\n- #7：第1天 狼队已确定夜晚击杀结果：bob（多数决定）。\n- #13：第1天 夜晚结算完成，死亡玩家：bob。\n- #14：第1天 进入遗言阶段。\n- #15：第1天 bob 发表遗言：我是平民，被刀出局了。大家注意找狼，我怀疑可能有人在带节奏。希望神职能发挥作用，带领好人获胜。加油！\n- #16：第1天 进入白天发言阶段。\n- #17：第1天 erin 发言：大家好，我是女巫。昨晚bob被刀了，我没有救，因为首刀不确定身份。bob遗言说自己是平民，目前先相信他是好人。今天大家先别急着归票，我们听听所有人的发言再做决定。我建议先找一找有没有狼人在带节奏，如果有人急于把别人打成狼坑，我会重点怀疑。\n- #18：第1天 alice 发言：大家好，我是猎人。首先，感谢女巫erin报出身份，目前bob遗言认平民，我们暂时认他是好人走。今天白天我不建议急着归票，先听听所有人的发言，尤其要注意谁在带节奏或者急于踩人。后面发言的玩家如果有什么逻辑漏洞，我会重点关注。我是一个猎人，如果被狼人刀了会开枪带走一个，所以狼人想刀我也要掂量一下。今天先按顺序发言，之后再决定投票。\n- #19：第1天 carol 发言：大家好，我是carol，平民。女巫和猎人都跳了，目前信息不多，bob遗言认平民，我们先尊重。今天预言家还没起跳，有点奇怪，可能是在隐藏。我建议先听后面发言，重点关注那些发言模糊或者急于带节奏的人。目前我暂时没有特别怀疑的对象，跟着女巫和猎人走。\n- #20：第1天 frank 发言：大家好，我是平民。目前女巫和猎人都已跳明，bob遗言认平民，暂时相信。预言家还没起跳，可能是想隐藏身份或憋一轮验人。今天先不急着归票，建议听完后面几位玩家的发言再做决定。我会重点关注那些发言前后矛盾或急于踩人的玩家。目前暂时没有明确怀疑对象，跟着女巫和猎人走。\n- #21：第1天 heidi 发言：大家好，我是平民。目前女巫和猎人都跳出来了，bob遗言认平民，好人阵容基本清晰。预言家还没现身，可能是想藏一轮。我觉得今天可以先不要急着归票，等所有人发完言，看看有没有逻辑矛盾的地方。目前没有明确怀疑对象，跟着女巫和猎人走比较稳。\n- #22：第1天 dave 发言：大家好，我是dave，平民。目前女巫和猎人都跳明了，bob遗言认平民，好人阵容比较清晰。预言家还没出现，可能是想隐藏一轮。我建议先听完grace的发言，再决定今天的投票。目前没有明显狼坑，暂时跟随女巫和猎人走，不要急着归票。\n- #23：第1天 grace 发言：大家好，我是预言家。昨晚我查验了erin，结果是好人。当前女巫和猎人都已经跳明，bob是平民出局，好人阵容比较清晰。今天我选择起跳，希望大家能相信我。既然erin是女巫且是好人，alice是猎人，那么剩下的玩家中还有两狼。今天我建议不要急着归票，先听所有人发言，明天我再报第二晚验人。如果有狼人想对跳，可以出来对线。谢谢。\n- #24：第1天 进入白天投票阶段。\n- #29：第1天 carol 选择弃票。\n- #32：第1天 白天投票结算完成，grace 得票最高并将被放逐；弃票：dave、carol、frank、grace、heidi、erin。\n- #33：第1天 grace 被投票放逐。\n- #34：第1天 进入遗言阶段。\n- #35：第1天 grace 发表遗言：我是真预言家，昨晚验了erin是好人，所以女巫可信。今天我被放逐，说明狼人可能一直在带节奏。剩下的好人：alice猎人，erin女巫，bob平民已走，那么狼人就在carol、frank、heidi、dave当中。希望你们明天仔细分析他们的发言和投票，找出两狼。好人加油！\n- #37：第2天 carol 在狼人夜聊中发言：heidi，第一晚我们刀了bob，他是平民。现在女巫erin和猎人alice都明牌了，预言家grace被放逐，局势对我们有利。今天白天我弃票了，你也是吧？现在剩frank和dave两个未知身份，大概率是村民。我建议今晚刀frank，他发言偏平民且比较低调，如果再拖可能被女巫毒或验。你觉得呢？\n- #38：第2天 heidi 在狼人夜聊中发言：carol，我同意你的分析。我刚才也弃票了，没有暴露。frank发言确实偏平民且低调，dave也很中立，但frank更安静，刀他风险小，也能继续压缩村民数量。就按你说的，今晚刀frank，先把村民阵营减员，争取尽快进入屠边节奏。\n- #39：第2天 进入狼人击杀。\n- #40：第2天 carol 提交狼人击杀目标：frank。\n- #42：第2天 狼队已确定夜晚击杀结果：frank（多数决定）。\n- #45：第2天 夜晚结算完成，死亡玩家：frank、alice。\n- #46：第2天 进入遗言阶段。\n- #47：第2天 frank 发表遗言：我是平民，被狼人刀了。现在形势很清晰，女巫erin和猎人alice都是好人，预言家grace被投出局。狼人就在carol、heidi、dave当中。今晚狼人刀了我，说明他们想减少好人轮次。希望剩下的好人仔细分析发言和投票，找出两狼。我的遗言就这些，好人加油！\n- #48：第2天 alice 发表遗言：我是猎人，昨晚被刀，我决定开枪带走carol。我怀疑carol是狼，因为她发言一直跟风，没有自己的视角。希望好人能利用这个信息，最终找出另一只狼。\n- #49：第2天 进入白天发言阶段。\n- #50：第2天 erin 发言：我是女巫，昨晚我毒杀了alice，因为她第一天投票放逐了预言家，行为极像狼人。目前frank被刀，遗言认平民，应该可信。alice遗言说开枪带走carol，但她被我毒死，猎人被毒不能开枪，所以carol还活着。现在场上存活：我、carol、heidi、dave。预言家grace验了我好人，所以我是铁好。那么狼人就在carol、heidi、dave中，而且我怀疑alice是狼，那么另一狼可能在她队友中。今天我们要仔细听发言，找出剩下的两狼。我暂时偏向怀疑heidi和dave，因为carol被alice点名可能是好人。希望大家理性分析，不要盲目投票。"
+        },
+        {
+          "title": "最近一次身份推断摘要",
+          "content": "erin：推测身份=witch，身份置信度=10.00，发言可信度=10.00，理由=自曝女巫，被预言家查好；证据：发言跳女巫，grace查她好人，自认毒alice\nalice：推测身份=hunter，身份置信度=10.00，发言可信度=5.00，理由=自曝猎人，被毒死无法开枪；证据：第一天跳猎人，被女巫毒死，遗言带carol无效\nbob：推测身份=villager，身份置信度=10.00，发言可信度=7.00，理由=首刀出局，遗言认平民；证据：狼队首刀，遗言认平民\ncarol：推测身份=werewolf，身份置信度=10.00，发言可信度=0.00，理由=自身是狼人；证据：已知身份\nfrank：推测身份=villager，身份置信度=10.00，发言可信度=7.00，理由=被刀出局，遗言认平民；证据：狼队第二刀，遗言认平民\nheidi：推测身份=werewolf，身份置信度=10.00，发言可信度=0.00，理由=狼人队友；证据：已知身份\ndave：推测身份=villager，身份置信度=9.00，发言可信度=4.00，理由=剩余唯一村民坑位；证据：发言认平民，狼人已满，民坑只剩他\ngrace：推测身份=seer，身份置信度=10.00，发言可信度=8.00，理由=跳预言家查女巫无对跳；证据：发言查erin好人，被放逐遗言"
+        },
+        {
+          "title": "基础打法",
+          "content": "狼人白天发言要降低视角泄露，少用确定语气，多把怀疑建立在公开信息上。\n白天发言先陈述可见事实，再给出怀疑等级；避免在证据不足时强行定狼。\n基础打法表示通常情况下应遵守的角色打法；若与当前可见信息、合法行动冲突，优先遵守当前局面和合法行动，可以忽略不适用的基础打法。"
+        },
+        {
+          "title": "对局经验",
+          "content": "在首日信息较少时，狼人发言应模拟好人的思考状态，主动提出一些推测方向或对平安夜的解读，避免因发言空洞被预言家或好人锁定为可疑目标。\n当队友被查杀且自己未暴露时，应适度质疑预言家的验人逻辑，提出可能存在的悍跳或骗药可能性，为队友留出辩解空间，而不是立即站边预言家。\n当队友被预言家查杀时，若决定制造混乱，发言和投票必须保持逻辑一致。例如可以提出一个新的怀疑对象，并在发言中暗示预言家可能悍跳，同时坚持投票给该对象，避免言行矛盾暴露团队。\n当同伙被预言家查杀且女巫可能毒杀时，应避免立即卖队友，可尝试做高自身身份，通过质疑预言家或暗示有女巫用药等可能，保留同伙生存空间。\n被全场归票时，发言应保持前后逻辑一致，若曾站边真预言家，不要突然全面倒戈；可尝试表水并拉拢未站定玩家，制造分票。\n对局经验仅供参考；若与当前可见信息、合法行动或基础打法冲突，优先遵守当前局面和合法行动，可以忽略不适用的对局经验。"
+        },
+        {
+          "title": "输出约束",
+          "content": "只返回一个合法 JSON object，不要输出 Markdown、注释或额外解释。\n输出示例（最终只返回其中一个 object，不要返回示例列表）：\n{\"action_type\": \"speak\", \"target_user_name\": null, \"content\": \"这里填写中文发言\"}\naction_type 必须来自 legal_actions。需要目标时，target_user_name 必须来自该行动的合法目标；不需要目标时，target_user_name 为 null。发言、遗言、狼人夜聊需要填写中文 content；其他行动的 content 为 null。\n具体 schema 如下：\n{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"WerewolfActionDecision\",\n  \"type\": \"object\",\n  \"oneOf\": [\n    {\n      \"type\": \"object\",\n      \"description\": \"公开发言的响应格式。\",\n      \"additionalProperties\": false,\n      \"required\": [\n        \"action_type\",\n        \"target_user_name\",\n        \"content\"\n      ],\n      \"properties\": {\n        \"action_type\": {\n          \"const\": \"speak\",\n          \"description\": \"固定填写为 公开发言 对应的动作类型。\"\n        },\n        \"target_user_name\": {\n          \"type\": \"null\",\n          \"description\": \"本行动不需要选择目标，请保持为空。\"\n        },\n        \"content\": {\n          \"type\": \"string\",\n          \"minLength\": 1,\n          \"description\": \"公开发言内容。\"\n        }\n      }\n    }\n  ]\n}"
+        }
+      ],
+      "response_text": "{\n  \"action_type\": \"speak\",\n  \"target_user_name\": null,\n  \"content\": \"大家好，我是carol，平民。昨晚frank被刀，遗言认平民，alice被毒，遗言说开枪带我，但她是猎人吗？女巫确实毒了她，但猎人被毒不能开枪，所以我活下来了。现在场上还有我、heidi、dave和女巫erin。女巫说怀疑alice是狼，但alice跳猎人且被刀，我觉得她可能是真猎人被女巫误毒了。那么狼人就在heidi和dave之中？我暂时没有明确目标，建议先听heidi和dave的发言，再决定投票。今天先不急着归票，可以再盘一盘逻辑。\"\n}"
+    },
+    "memories": [
+      {
+        "memory_id": "memory_b0a719e24d1f4a56a5c4414c278a23ae",
+        "role": "werewolf",
+        "phase": "day_speech",
+        "score": 78,
+        "content": "在首日信息较少时，狼人发言应模拟好人的思考状态，主动提出一些推测方向或对平安夜的解读，避免因发言空洞被预言家或好人锁定为可疑目标。",
+        "source_game_id": "game_71fa486adc",
+        "lifespan": 6,
+        "normalized_score": 13.0
+      },
+      {
+        "memory_id": "memory_92f871fe627e42fa9effec4b0defa20a",
+        "role": "werewolf",
+        "phase": "day_speech",
+        "score": 16,
+        "content": "当队友被查杀且自己未暴露时，应适度质疑预言家的验人逻辑，提出可能存在的悍跳或骗药可能性，为队友留出辩解空间，而不是立即站边预言家。",
+        "source_game_id": "game_7f740f18ab",
+        "lifespan": 9,
+        "normalized_score": 1.78
+      },
+      {
+        "memory_id": "memory_4a82a4e694844169a5abe188b952fe11",
+        "role": "werewolf",
+        "phase": "day_speech",
+        "score": 8,
+        "content": "当队友被预言家查杀时，若决定制造混乱，发言和投票必须保持逻辑一致。例如可以提出一个新的怀疑对象，并在发言中暗示预言家可能悍跳，同时坚持投票给该对象，避免言行矛盾暴露团队。",
+        "source_game_id": "game_4b85c02fa2",
+        "lifespan": 5,
+        "normalized_score": 1.6
+      },
+      {
+        "memory_id": "memory_782114b7192141759802493b4052e4cc",
+        "role": "werewolf",
+        "phase": "day_speech",
+        "score": 8,
+        "content": "当同伙被预言家查杀且女巫可能毒杀时，应避免立即卖队友，可尝试做高自身身份，通过质疑预言家或暗示有女巫用药等可能，保留同伙生存空间。",
+        "source_game_id": "game_a5d5dd7340",
+        "lifespan": 10,
+        "normalized_score": 0.8
+      },
+      {
+        "memory_id": "memory_c1b5b5f4431540f18def4ca4849c50d1",
+        "role": "werewolf",
+        "phase": "day_speech",
+        "score": 0,
+        "content": "被全场归票时，发言应保持前后逻辑一致，若曾站边真预言家，不要突然全面倒戈；可尝试表水并拉拢未站定玩家，制造分票。",
+        "source_game_id": "game_b247f3554d",
+        "lifespan": 3,
+        "normalized_score": 0.0
+      }
+    ],
+    "submitted": {
+      "action_type": "speak",
+      "target_user_name": null,
+      "content": "大家好，我是carol，平民。昨晚frank被刀，遗言认平民，alice被毒，遗言说开枪带我，但她是猎人吗？女巫确实毒了她，但猎人被毒不能开枪，所以我活下来了。现在场上还有我、heidi、dave和女巫erin。女巫说怀疑alice是狼，但alice跳猎人且被刀，我觉得她可能是真猎人被女巫误毒了。那么狼人就在heidi和dave之中？我暂时没有明确目标，建议先听heidi和dave的发言，再决定投票。今天先不急着归票，可以再盘一盘逻辑。"
+    }
+  },
+  "postgame": {
+    "summary": "本局carol作为狼人，整体发挥较好，最终通过空刀策略赢得胜利，但在第2天投票时出现重大失误，未跟随女巫归票队友heidi，反而投票给dave，暴露了团队嫌疑，险些导致失败。",
+    "belief_errors": [],
+    "decision_errors": [
+      {
+        "lesson": "当好人阵营形成一致归票时，狼人应跟随投票，避免成为异常票，即使目标是队友。",
+        "mistake": "第2天女巫明确归票heidi，且场上多数票已指向heidi，carol却投了dave，没有跟随大流投票，使自己与多数好人行为不一致，增加了被怀疑的风险。",
+        "request_id": "game_9c026e3850:13:2:day_vote:-:4:0:carol",
+        "action_type": "vote"
+      }
+    ],
+    "created_memories": [
+      {
+        "memory_id": "memory_8f2368990ce54ab0a4c911240f183c38",
+        "role": "werewolf",
+        "phase": "day_vote",
+        "content": "在带队神职明确归票时，狼人若未在发言中铺垫对该目标的怀疑，应跟随神职投票，避免投出孤票成为焦点；即使狼队友即将被放逐，也应果断跟票隐藏身份。"
+      },
+      {
+        "memory_id": "memory_ed34eb7bd66646259cda8bc52662770e",
+        "role": "werewolf",
+        "phase": "night_werewolf",
+        "content": "当仅剩一狼且女巫解药已用、毒药未明的残局，可以考虑空刀制造平安夜，白天装作困惑的好人，引导女巫归票真正的村民，或利用平安夜自证清白，避免贸然刀人暴露自身。"
+      }
+    ],
+    "helpful_count": 4,
+    "score_updates": [
+      {
+        "role": "werewolf",
+        "phase": "day_vote",
+        "content": "当场上形成一致归票时，狼人应跟随大流投票，避免特立独行，同时准备后续表水逻辑。",
+        "delta": 10,
+        "new_score": 70,
+        "old_score": 60,
+        "reason": "本局第2天归票阶段，若carol遵循该记忆跟随大流投票，则可以避免暴露团队的风险。"
+      },
+      {
+        "role": "werewolf",
+        "phase": "day_vote",
+        "content": "狼人在白天发言时应慎重选择攻击目标，一旦在发言中呼吁放逐某玩家，投票时务必跟随自己的发言；若判断必须跟随多数票，则应在发言中提前软化立场，避免言行矛盾被好人发现。",
+        "delta": 10,
+        "new_score": 18,
+        "old_score": 8,
+        "reason": "carol在第2天的发言中未明确归票dave，投票却投了dave，言行不一致，该记忆强调的发言与投票一致性本可避免此错误。"
+      },
+      {
+        "role": "werewolf",
+        "phase": "night_werewolf",
+        "content": "当女巫解药状态不明且采用屠民策略时，应优先击杀发言低调、身份不明的玩家，降低被救风险，并避免攻击已跳明或疑似神职的玩家，以防其坐实。",
+        "delta": 10,
+        "new_score": 20,
+        "old_score": 10,
+        "reason": "本局狼队连续选择刀低调村民bob和frank，符合该记忆的屠民策略，有效降低了被救风险，加速了胜利节奏。"
+      },
+      {
+        "role": "werewolf",
+        "phase": "belief",
+        "content": "狼人应持续通过遗言和死亡信息推算神民分布，当连续刀中平民时，应坚定屠民路线，不轻易转刀神职，以最快达成胜利条件。",
+        "delta": 10,
+        "new_score": 20,
+        "old_score": 10,
+        "reason": "通过首夜刀中平民bob、遗言和死亡信息确认神民分布后，狼队坚定继续刀村民frank，该记忆提供的思路确保了屠民路线的彻底执行。"
+      }
+    ],
+    "winner": "werewolf",
+    "self_won": true,
+    "llm": {
+      "status": "succeeded",
+      "sections": [
+        {
+          "title": "复盘对象与最终真相",
+          "content": "复盘玩家：exp_ca30ccd344dd:1:1（本局名字：carol），本局身份：werewolf。\n胜利阵营：werewolf。\n本玩家结局：阵营=werewolf，终局存活=True，死亡天数=无，死亡原因=无。\n上帝视角真实身份：\n- erin：seat=1，role=witch，team=good，存活。\n- alice：seat=2，role=hunter，team=good，已出局。\n- bob：seat=3，role=villager，team=good，已出局。\n- carol：seat=4，role=werewolf，team=werewolf，存活。\n- frank：seat=5，role=villager，team=good，已出局。\n- heidi：seat=6，role=werewolf，team=werewolf，已出局。\n- dave：seat=7，role=villager，team=good，已出局。\n- grace：seat=8，role=seer，team=good，已出局。"
+        },
+        {
+          "title": "本局规则",
+          "content": "8人局房间规格：狼人2名、预言家1名、女巫1名、猎人1名、村民3名。\n胜负条件：采用屠边规则。所有狼人出局则好人阵营获胜；所有神职或所有村民出局则狼人阵营获胜。\n夜晚顺序：狼人行动，预言家行动，女巫行动，然后统一结算死亡；猎人若因狼刀死亡且仍可开枪，会进入猎人开枪阶段。\n狼人：每晚共同决定一个击杀结果。若首次选择平票，进入一次重投；重投仍平票时系统在平票候选中随机决定。若存活狼人不少于2名，先进入狼人夜聊，再进入击杀。狼人可以选择空刀。\n预言家：每晚查验一名除自己以外的玩家，目标可以是存活或已出局玩家，只得到阵营结果。\n女巫：一局有一次解药和一次毒药；每个女巫行动阶段只能提交一个动作，可救当晚狼刀目标、毒一名存活玩家或跳过。\n白天流程：若有死亡且遗言开启，死亡玩家先发表一次遗言；随后存活玩家按座位顺序发言，再由存活玩家投票。\n投票：每名存活玩家一票，不能投自己，默认投给其他存活玩家。最高票者被放逐；若最高票平票，平票玩家进入 PK 发言，其他存活且非 PK 候选的玩家在候选中重投；重投仍平票则无人出局。本局允许弃票。\n猎人：猎人因狼刀或白天放逐死亡且游戏未结束时可以开枪；被女巫毒死、技能已用过或胜负已定时不能开枪。\n可选规则开关：遗言：开启；狼人夜聊：开启；狼人空刀：允许；死亡公开身份：不公开；投票弃票：允许。"
+        },
+        {
+          "title": "完整对局时间线",
+          "content": "#1 (night_werewolf) 第1天 游戏开始，玩家入座：erin、alice、bob、carol、frank、heidi、dave、grace。\n#2 (night_werewolf) [本玩家行动 request=game_9c026e3850:0:1:night_werewolf:werewolf_chat:0:0:carol action=werewolf_chat] 第1天 carol 在狼人夜聊中发言：heidi，第一晚信息很少，我们得谨慎刀人。我建议先不刀跳预言家的，防止被女巫救。我倾向刀一个发言低调、身份不明的玩家，比如bob或frank，你觉得呢？\n#3 (night_werewolf) 第1天 heidi 在狼人夜聊中发言：我同意你的看法，第一晚刀预言家风险太大。bob和frank都挺低调，我觉得bob更像村民，倾向于刀bob。\n#4 (night_werewolf) 第1天 进入狼人击杀。\n#5 (night_werewolf) [本玩家行动 request=game_9c026e3850:1:1:night_werewolf:werewolf_kill:0:0:carol action=kill] 第1天 carol 提交狼人击杀目标：bob。\n#6 (night_werewolf) 第1天 heidi 提交狼人击杀目标：bob。\n#7 (night_werewolf) 第1天 狼队已确定夜晚击杀结果：bob（多数决定）。\n#8 (night_seer) 第1天 进入预言家夜晚行动阶段。\n#9 (night_seer) 第1天 grace 提交预言家查验目标：erin。\n#10 (night_seer) 第1天 grace 查验了 erin，结果为好人。\n#11 (night_witch) 第1天 进入女巫夜晚行动阶段。\n#12 (night_witch) 第1天 erin 选择跳过当前行动。\n#13 (night_witch) 第1天 夜晚结算完成，死亡玩家：bob。\n#14 (day_last_words) 第1天 进入遗言阶段。\n#15 (day_last_words) 第1天 bob 发表遗言：我是平民，被刀出局了。大家注意找狼，我怀疑可能有人在带节奏。希望神职能发挥作用，带领好人获胜。加油！\n#16 (day_speech) 第1天 进入白天发言阶段。\n#17 (day_speech) 第1天 erin 发言：大家好，我是女巫。昨晚bob被刀了，我没有救，因为首刀不确定身份。bob遗言说自己是平民，目前先相信他是好人。今天大家先别急着归票，我们听听所有人的发言再做决定。我建议先找一找有没有狼人在带节奏，如果有人急于把别人打成狼坑，我会重点怀疑。\n#18 (day_speech) 第1天 alice 发言：大家好，我是猎人。首先，感谢女巫erin报出身份，目前bob遗言认平民，我们暂时认他是好人走。今天白天我不建议急着归票，先听听所有人的发言，尤其要注意谁在带节奏或者急于踩人。后面发言的玩家如果有什么逻辑漏洞，我会重点关注。我是一个猎人，如果被狼人刀了会开枪带走一个，所以狼人想刀我也要掂量一下。今天先按顺序发言，之后再决定投票。\n[本玩家推断 before request=game_9c026e3850:5:1:day_speech:-:2:0:carol]\n第1天 day_speech：\n- erin => witch，置信度=8，证据=bob被刀且未被救\n- alice => hunter，置信度=8，证据=明确表态\n- bob => villager，置信度=10，证据=遗言内容\n- carol => werewolf，置信度=10，证据=身份已知\n- frank => villager，置信度=5，证据=无信息\n- heidi => werewolf，置信度=10，证据=已知身份\n- dave => villager，置信度=5，证据=无信息\n- grace => villager，置信度=5，证据=无信息\n#19 (day_speech) [本玩家行动 request=game_9c026e3850:5:1:day_speech:-:2:0:carol action=speak] 第1天 carol 发言：大家好，我是carol，平民。女巫和猎人都跳了，目前信息不多，bob遗言认平民，我们先尊重。今天预言家还没起跳，有点奇怪，可能是在隐藏。我建议先听后面发言，重点关注那些发言模糊或者急于带节奏的人。目前我暂时没有特别怀疑的对象，跟着女巫和猎人走。\n#20 (day_speech) 第1天 frank 发言：大家好，我是平民。目前女巫和猎人都已跳明，bob遗言认平民，暂时相信。预言家还没起跳，可能是想隐藏身份或憋一轮验人。今天先不急着归票，建议听完后面几位玩家的发言再做决定。我会重点关注那些发言前后矛盾或急于踩人的玩家。目前暂时没有明确怀疑对象，跟着女巫和猎人走。\n#21 (day_speech) 第1天 heidi 发言：大家好，我是平民。目前女巫和猎人都跳出来了，bob遗言认平民，好人阵容基本清晰。预言家还没现身，可能是想藏一轮。我觉得今天可以先不要急着归票，等所有人发完言，看看有没有逻辑矛盾的地方。目前没有明确怀疑对象，跟着女巫和猎人走比较稳。\n#22 (day_speech) 第1天 dave 发言：大家好，我是dave，平民。目前女巫和猎人都跳明了，bob遗言认平民，好人阵容比较清晰。预言家还没出现，可能是想隐藏一轮。我建议先听完grace的发言，再决定今天的投票。目前没有明显狼坑，暂时跟随女巫和猎人走，不要急着归票。\n#23 (day_speech) 第1天 grace 发言：大家好，我是预言家。昨晚我查验了erin，结果是好人。当前女巫和猎人都已经跳明，bob是平民出局，好人阵容比较清晰。今天我选择起跳，希望大家能相信我。既然erin是女巫且是好人，alice是猎人，那么剩下的玩家中还有两狼。今天我建议不要急着归票，先听所有人发言，明天我再报第二晚验人。如果有狼人想对跳，可以出来对线。谢谢。\n#24 (day_vote) 第1天 进入白天投票阶段。\n#25 (day_vote) 第1天 grace 选择弃票。\n#26 (day_vote) 第1天 alice 提交投票，目标：grace。\n#27 (day_vote) 第1天 dave 选择弃票。\n#28 (day_vote) 第1天 frank 选择弃票。\n[本玩家推断 before request=game_9c026e3850:6:1:day_vote:-:7:0:carol]\n第1天 day_vote：\n- erin => witch，置信度=9，证据=发言跳女巫，bob被刀且未被救\n- alice => hunter，置信度=9，证据=明确跳猎人\n- bob => villager，置信度=10，证据=遗言认平民；狼队刀他\n- carol => werewolf，置信度=10，证据=已知身份\n- frank => villager，置信度=9，证据=发言认平民，无神面\n- heidi => werewolf，置信度=10，证据=已知身份\n- dave => villager，置信度=9，证据=发言认平民，无神面\n- grace => seer，置信度=9，证据=发言查erin为好人，无人对跳\n#29 (day_vote) [本玩家行动 request=game_9c026e3850:6:1:day_vote:-:7:0:carol action=abstain] 第1天 carol 选择弃票。\n#30 (day_vote) 第1天 heidi 选择弃票。\n#31 (day_vote) 第1天 erin 选择弃票。\n#32 (day_vote) 第1天 白天投票结算完成，grace 得票最高并将被放逐；弃票：dave、carol、frank、grace、heidi、erin。\n#33 (day_vote) 第1天 grace 被投票放逐。\n#34 (day_last_words) 第1天 进入遗言阶段。\n#35 (day_last_words) 第1天 grace 发表遗言：我是真预言家，昨晚验了erin是好人，所以女巫可信。今天我被放逐，说明狼人可能一直在带节奏。剩下的好人：alice猎人，erin女巫，bob平民已走，那么狼人就在carol、frank、heidi、dave当中。希望你们明天仔细分析他们的发言和投票，找出两狼。好人加油！\n#36 (night_werewolf) 第2天 进入狼人夜晚行动阶段。\n[本玩家推断 before request=game_9c026e3850:8:2:night_werewolf:werewolf_chat:7:0:carol]\n第2天 night_werewolf：\n- erin => witch，置信度=10，证据=发言跳女巫，grace查她好人\n- alice => hunter，置信度=10，证据=明确跳猎人\n- bob => villager，置信度=10，证据=遗言认平民，狼队刀他\n- carol => werewolf，置信度=10，证据=已知身份\n- frank => villager，置信度=8，证据=发言认平民，无神面\n- heidi => werewolf，置信度=10，证据=已知身份\n- dave => villager，置信度=8，证据=发言认平民，无神面\n- grace => seer，置信度=10，证据=发言查erin好人，被放逐遗言\n#37 (night_werewolf) [本玩家行动 request=game_9c026e3850:8:2:night_werewolf:werewolf_chat:7:0:carol action=werewolf_chat] 第2天 carol 在狼人夜聊中发言：heidi，第一晚我们刀了bob，他是平民。现在女巫erin和猎人alice都明牌了，预言家grace被放逐，局势对我们有利。今天白天我弃票了，你也是吧？现在剩frank和dave两个未知身份，大概率是村民。我建议今晚刀frank，他发言偏平民且比较低调，如果再拖可能被女巫毒或验。你觉得呢？\n#38 (night_werewolf) 第2天 heidi 在狼人夜聊中发言：carol，我同意你的分析。我刚才也弃票了，没有暴露。frank发言确实偏平民且低调，dave也很中立，但frank更安静，刀他风险小，也能继续压缩村民数量。就按你说的，今晚刀frank，先把村民阵营减员，争取尽快进入屠边节奏。\n#39 (night_werewolf) 第2天 进入狼人击杀。\n#40 (night_werewolf) [本玩家行动 request=game_9c026e3850:9:2:night_werewolf:werewolf_kill:7:0:carol action=kill] 第2天 carol 提交狼人击杀目标：frank。\n#41 (night_werewolf) 第2天 heidi 提交狼人击杀目标：frank。\n#42 (night_werewolf) 第2天 狼队已确定夜晚击杀结果：frank（多数决定）。\n#43 (night_witch) 第2天 进入女巫夜晚行动阶段。\n#44 (night_witch) 第2天 erin 选择使用毒药，目标：alice。\n#45 (night_witch) 第2天 夜晚结算完成，死亡玩家：frank、alice。\n#46 (day_last_words) 第2天 进入遗言阶段。\n#47 (day_last_words) 第2天 frank 发表遗言：我是平民，被狼人刀了。现在形势很清晰，女巫erin和猎人alice都是好人，预言家grace被投出局。狼人就在carol、heidi、dave当中。今晚狼人刀了我，说明他们想减少好人轮次。希望剩下的好人仔细分析发言和投票，找出两狼。我的遗言就这些，好人加油！\n#48 (day_last_words) 第2天 alice 发表遗言：我是猎人，昨晚被刀，我决定开枪带走carol。我怀疑carol是狼，因为她发言一直跟风，没有自己的视角。希望好人能利用这个信息，最终找出另一只狼。\n#49 (day_speech) 第2天 进入白天发言阶段。\n#50 (day_speech) 第2天 erin 发言：我是女巫，昨晚我毒杀了alice，因为她第一天投票放逐了预言家，行为极像狼人。目前frank被刀，遗言认平民，应该可信。alice遗言说开枪带走carol，但她被我毒死，猎人被毒不能开枪，所以carol还活着。现在场上存活：我、carol、heidi、dave。预言家grace验了我好人，所以我是铁好。那么狼人就在carol、heidi、dave中，而且我怀疑alice是狼，那么另一狼可能在她队友中。今天我们要仔细听发言，找出剩下的两狼。我暂时偏向怀疑heidi和dave，因为carol被alice点名可能是好人。希望大家理性分析，不要盲目投票。\n[本玩家推断 before request=game_9c026e3850:12:2:day_speech:-:1:0:carol]\n第2天 day_speech：\n- erin => witch，置信度=10，证据=发言跳女巫，grace查她好人，自认毒alice\n- alice => hunter，置信度=10，证据=第一天跳猎人，被女巫毒死，遗言带carol无效\n- bob => villager，置信度=10，证据=狼队首刀，遗言认平民\n- carol => werewolf，置信度=10，证据=已知身份\n- frank => villager，置信度=10，证据=狼队第二刀，遗言认平民\n- heidi => werewolf，置信度=10，证据=已知身份\n- dave => villager，置信度=9，证据=发言认平民，狼人已满，民坑只剩他\n- grace => seer，置信度=10，证据=发言查erin好人，被放逐遗言\n#51 (day_speech) [本玩家行动 request=game_9c026e3850:12:2:day_speech:-:1:0:carol action=speak] 第2天 carol 发言：大家好，我是carol，平民。昨晚frank被刀，遗言认平民，alice被毒，遗言说开枪带我，但她是猎人吗？女巫确实毒了她，但猎人被毒不能开枪，所以我活下来了。现在场上还有我、heidi、dave和女巫erin。女巫说怀疑alice是狼，但alice跳猎人且被刀，我觉得她可能是真猎人被女巫误毒了。那么狼人就在heidi和dave之中？我暂时没有明确目标，建议先听heidi和dave的发言，再决定投票。今天先不急着归票，可以再盘一盘逻辑。\n#52 (day_speech) 第2天 heidi 发言：大家好，我是heidi，平民。昨晚frank被刀，遗言认平民，alice被毒，遗言说开枪带我，但既然女巫认毒了alice，那alice的遗言应该不可信。女巫是好人，所以场上还剩我、carol、dave和女巫。我分析一下：carol被alice点杀，可能是坏人故意踩好人；dave一直很中立，发言不多，弃票行为也比较保守。我觉得狼人很可能在dave身上，因为他几乎没有给出任何有效信息。当然，我也不排除carol的可能性，但今天我更倾向于先听dave的发言。我暂时没有明确怀疑对象，但会重点关注dave。希望女巫能带队归票，我跟着走。\n#53 (day_speech) 第2天 dave 发言：大家好，我是dave，平民。昨晚frank被刀认平民，alice是猎人被女巫毒杀，遗言说要带carol，但猎人被毒无法开枪，所以carol还活着。现在场上还剩我、carol、heidi和女巫erin。女巫说怀疑alice是狼，但alice跳猎人且被刀，我认为她可能是真猎人被误毒了。那么狼人应该就在heidi和carol中。我倾向于先怀疑heidi，因为她发言一直在踩我，却没有实质逻辑；而carol被alice点杀，有可能是狼踩狼或真好人。今天建议听女巫归票，我跟着走。暂时不投票，等女巫指示。\n#54 (day_vote) 第2天 进入白天投票阶段。\n#55 (day_vote) 第2天 erin 提交投票，目标：heidi。\n#56 (day_vote) 第2天 dave 提交投票，目标：heidi。\n#57 (day_vote) 第2天 heidi 选择弃票。\n[本玩家推断 before request=game_9c026e3850:13:2:day_vote:-:4:0:carol]\n第2天 day_vote：\n- erin => witch，置信度=10，证据=第一天跳女巫，grace验她好人，自认毒alice\n- alice => hunter，置信度=10，证据=第一天跳猎人，被女巫毒死，遗言带carol\n- bob => villager，置信度=10，证据=狼队首刀，遗言认平民\n- carol => werewolf，置信度=10，证据=已知身份，故意引导\n- frank => villager，置信度=10，证据=狼队第二刀，遗言认平民\n- heidi => werewolf，置信度=10，证据=已知身份，共同行动\n- dave => villager，置信度=10，证据=剩余村民，发言踩heidi\n- grace => seer，置信度=10，证据=发言查erin好人，被放逐遗言\n#58 (day_vote) [本玩家行动 request=game_9c026e3850:13:2:day_vote:-:4:0:carol action=vote] 第2天 carol 提交投票，目标：dave。\n#59 (day_vote) 第2天 白天投票结算完成，heidi 得票最高并将被放逐；弃票：heidi。\n#60 (day_vote) 第2天 heidi 被投票放逐。\n#61 (day_last_words) 第2天 进入遗言阶段。\n#62 (day_last_words) 第2天 heidi 发表遗言：我是平民，没想到今天被归票出局。我弃票是因为没有明确怀疑对象，但dave的发言一直在踩我，逻辑很牵强。现在场上只剩女巫、carol和dave，我怀疑dave是最后一狼。希望女巫明天能毒掉dave，好人胜利！\n#63 (night_werewolf) 第3天 进入狼人夜晚行动阶段。\n[本玩家推断 before request=game_9c026e3850:15:3:night_werewolf:werewolf_kill:4:0:carol]\n第3天 night_werewolf：\n- erin => witch，置信度=10，证据=第一天跳女巫，grace验她好人，自认毒alice\n- alice => hunter，置信度=9，证据=第一天跳猎人，被女巫毒死，遗言带carol\n- bob => villager，置信度=10，证据=狼队首刀目标，遗言认平民\n- carol => werewolf，置信度=10，证据=已知身份，狼队成员，投票并发言迷惑\n- frank => villager，置信度=10，证据=狼队第二晚刀frank，遗言认平民\n- heidi => werewolf，置信度=10，证据=已知身份，狼队成员，被投票放逐\n- dave => villager，置信度=10，证据=剩余村民，发言踩heidi，逻辑清晰\n- grace => seer，置信度=10，证据=发言查erin好人，被放逐遗言\n#64 (night_werewolf) [本玩家行动 request=game_9c026e3850:15:3:night_werewolf:werewolf_kill:4:0:carol action=skip] 第3天 carol 选择跳过当前行动。\n#65 (night_werewolf) 第3天 狼队已确定夜晚击杀结果：空刀（选择空刀）。\n#66 (night_witch) 第3天 进入女巫夜晚行动阶段。\n#67 (night_witch) 第3天 erin 选择跳过当前行动。\n#68 (night_witch) 第3天 夜晚结算完成，昨夜无人死亡。\n#69 (day_speech) 第3天 进入白天发言阶段。\n#70 (day_speech) 第3天 erin 发言：我是女巫，昨晚无人死亡，说明狼人空刀了。目前场上存活：我、carol、dave。根据之前信息，平民bob、frank、heidi已全部出局，所以剩下的两狼就在carol和dave中。我怀疑dave是狼，因为他的发言一直在踩heidi，而heidi遗言也怀疑dave。今天我先归票dave，如果游戏没结束，明天我再毒carol。请大家投票dave。\n[本玩家推断 before request=game_9c026e3850:17:3:day_speech:-:1:0:carol]\n第3天 day_speech：\n- erin => witch，置信度=10，证据=第一天跳女巫，grace验她好人，自认毒alice，发言带队归票\n- alice => hunter，置信度=10，证据=第一天跳猎人，被女巫毒死，遗言开枪带carol\n- bob => villager，置信度=10，证据=狼队首刀目标，遗言认平民\n- carol => werewolf，置信度=10，证据=已知身份，狼队成员，攻击dave转移焦点\n- frank => villager，置信度=10，证据=狼队第二晚刀frank，遗言认平民\n- heidi => werewolf，置信度=10，证据=已知身份，狼队成员，被投票放逐，遗言踩dave\n- dave => villager，置信度=10，证据=剩余村民，发言踩heidi，逻辑自洽\n- grace => seer，置信度=10，证据=发言查erin好人，被放逐遗言\n#71 (day_speech) [本玩家行动 request=game_9c026e3850:17:3:day_speech:-:1:0:carol action=speak] 第3天 carol 发言：大家好，我是carol。女巫erin已经分析得很清楚了，现在场上只有我、女巫和dave。从之前的遗言来看，heidi被放逐时踩了dave，而dave的发言一直想归票我，逻辑上确实有狼面。我同意女巫的归票，今天先投dave，如果游戏不结束，明天再听女巫安排。\n#72 (day_speech) 第3天 dave 发言：大家好，我是dave，平民。女巫和carol都归票我，但我必须澄清逻辑。目前已经出局的玩家有bob、grace、frank、alice、heidi。如果我是狼，那么平民就只剩下bob和frank两个，而heidi如果是平民，三个平民全部出局游戏早就结束了，但游戏没有结束，说明heidi不是平民，而是狼。那么平民还有我存活，所以我是真平民。而heidi是狼，那么剩下的狼就是carol。今天只要投出carol，游戏就结束。相反，如果投我，明天只剩女巫和carol，女巫会被刀，狼人获胜。请女巫仔细思考，我绝对不是狼。今天我提议投票carol，结束游戏。\n#73 (day_vote) 第3天 进入白天投票阶段。\n[本玩家推断 before request=game_9c026e3850:18:3:day_vote:-:3:0:carol]\n第3天 day_vote：\n- erin => witch，置信度=10，证据=自认女巫，归票dave，未识破heidi是狼\n- alice => hunter，置信度=10，证据=第一天跳猎人，被女巫毒死，遗言带carol\n- bob => villager，置信度=10，证据=狼队首刀目标，遗言认平民\n- carol => werewolf，置信度=10，证据=已知身份，狼队成员，附和女巫归票\n- frank => villager，置信度=10，证据=狼队第二晚刀frank，遗言认平民\n- heidi => werewolf，置信度=10，证据=已知身份，被投票放逐，遗言踩dave\n- dave => villager，置信度=10，证据=指出heidi是狼，carol是狼，逻辑自洽\n- grace => seer，置信度=10，证据=起跳预言家，验erin好人，被放逐遗言\n#74 (day_vote) [本玩家行动 request=game_9c026e3850:18:3:day_vote:-:3:0:carol action=vote] 第3天 carol 提交投票，目标：dave。\n#75 (day_vote) 第3天 dave 提交投票，目标：carol。\n#76 (day_vote) 第3天 erin 提交投票，目标：dave。\n#77 (day_vote) 第3天 白天投票结算完成，dave 得票最高并将被放逐；无人弃票。\n#78 (day_vote) 第3天 dave 被投票放逐。\n#79 (finished) 第3天 游戏结束，狼人阵营获胜。"
+        },
+        {
+          "title": "已有对局经验",
+          "content": "- memory_782114b7192141759802493b4052e4cc：role=werewolf，phase=day_speech，内容：当同伙被预言家查杀且女巫可能毒杀时，应避免立即卖队友，可尝试做高自身身份，通过质疑预言家或暗示有女巫用药等可能，保留同伙生存空间。\n- memory_73ca277335714809a8be5dffe1fac3bc：role=werewolf，phase=day_vote，内容：当场上形成一致归票时，狼人应跟随大流投票，避免特立独行，同时准备后续表水逻辑。\n- memory_068651cd683c4299a252889399860104：role=werewolf，phase=night_werewolf，内容：狼人在夜间行动前必须评估女巫的解药和毒药使用情况，预判夜间双死可能，以调整刀法和昼间策略。\n- memory_9c9dfd4868414d09acebf15e352a9ca5：role=werewolf，phase=belief，内容：狼人需时刻判断好人的信息差和心理，预测遗言和投票倾向，避免做出与整体局势不符的极端行为。\n- memory_92f871fe627e42fa9effec4b0defa20a：role=werewolf，phase=day_speech，内容：当队友被查杀且自己未暴露时，应适度质疑预言家的验人逻辑，提出可能存在的悍跳或骗药可能性，为队友留出辩解空间，而不是立即站边预言家。\n- memory_6a1bcf12b10e48f0a6ebaeb5d435ab98：role=werewolf，phase=day_speech，内容：自己被查杀时，优先表水强调自身行为的好人面，拉拢未站边的好人，避免直接攻击疑似神职的玩家，以防激起强神强硬回击。\n- memory_f37512685e2847a6bc3c6f4c3b44f9c4：role=werewolf，phase=night_werewolf，内容：若女巫解药尚在，狼队应谨慎刀向发言偏神职的玩家，以防女巫自救并报出银水，使该玩家身份坐实，好人团队固化。优先考虑刀发言谨慎未明示身份的疑似预言家。\n- memory_dc5d8671d9ef463da63ef5fadb6c22dd：role=werewolf，phase=day_speech，内容：被真预言家查杀时，避免直接攻击已跳明身份的神职，转而分析可能存在的狼人倒钩或好人站错边，尝试拉拢平民分票，争取存活。\n- memory_8fd367e08169436c96f6979d1815c04d：role=werewolf，phase=night_werewolf，内容：当女巫解药状态不明且采用屠民策略时，应优先击杀发言低调、身份不明的玩家，降低被救风险，并避免攻击已跳明或疑似神职的玩家，以防其坐实。\n- memory_6e49e7fbbb9946eb9b1baf4b583530b7：role=werewolf，phase=belief，内容：狼人应持续通过遗言和死亡信息推算神民分布，当连续刀中平民时，应坚定屠民路线，不轻易转刀神职，以最快达成胜利条件。\n- memory_c1f9bedf45be49499be7c5d2d654bb8a：role=werewolf，phase=day_vote，内容：当场上形成对某人的一致归票时，即使该人是自己被查杀的队友，也应跟随投票，避免成为唯一反向票暴露团队，可在遗言中再做辩解。\n- memory_b0a719e24d1f4a56a5c4414c278a23ae：role=werewolf，phase=day_speech，内容：在首日信息较少时，狼人发言应模拟好人的思考状态，主动提出一些推测方向或对平安夜的解读，避免因发言空洞被预言家或好人锁定为可疑目标。\n- memory_874cc0a05531441197f9c758261de048：role=werewolf，phase=last_words，内容：被放逐的狼人若声称平民，应着重分析己方好人面，拉拢尚未站定立场的玩家，避免直接攻击已跳明或可能为神职的玩家，以防激起强神采取激烈行动。\n- memory_4a82a4e694844169a5abe188b952fe11：role=werewolf，phase=day_speech，内容：当队友被预言家查杀时，若决定制造混乱，发言和投票必须保持逻辑一致。例如可以提出一个新的怀疑对象，并在发言中暗示预言家可能悍跳，同时坚持投票给该对象，避免言行矛盾暴露团队。\n- memory_8e3c5b74d5624e7297546967c922ca8d：role=werewolf，phase=night_werewolf，内容：单狼在最后一夜行动时，必须评估女巫毒药的使用可能性。如果女巫可能毒杀明狼，优先击杀女巫可以争取白日发言机会，或许能通过表水扭转局势。\n- memory_3978e47d02c54ecd8bfa37f8f39749bd：role=werewolf，phase=day_vote，内容：狼人在白天发言时应慎重选择攻击目标，一旦在发言中呼吁放逐某玩家，投票时务必跟随自己的发言；若判断必须跟随多数票，则应在发言中提前软化立场，避免言行矛盾被好人发现。\n- memory_26285a6250df4b18af14b78b8e292fa1：role=werewolf，phase=day_vote，内容：当多数玩家弃票时，狼人应跟随弃票，避免唯一投票成为焦点；若必须投票，需前置发言铺垫合理怀疑，且不投狼队友。\n- memory_c1b5b5f4431540f18def4ca4849c50d1：role=werewolf，phase=day_speech，内容：被全场归票时，发言应保持前后逻辑一致，若曾站边真预言家，不要突然全面倒戈；可尝试表水并拉拢未站定玩家，制造分票。\n- memory_5f314cfb50aa4527a182109cdc0e1fde：role=werewolf，phase=last_words，内容：当场上已有明确定位的神职且信息充分证实其身份时，狼人遗言应避免假跳同一神职，这会立即坐实狼团队。应选择平民身份并尝试建立与其他存活玩家的逻辑矛盾，为队友留空间。\n- memory_9d8a9af09313455cba9b746354e67b51：role=werewolf，phase=night_werewolf，内容：当女巫毒药尚未使用且自己在焦点名单中时，应评估女巫可能毒杀自己造成双死。若必须死，优先击杀女巫以解除毒药威胁，使场面信息混乱，避免队友独自面对所有好人。"
+        },
+        {
+          "title": "输出格式",
+          "content": "只返回一个合法 JSON object，不要输出 Markdown、注释或额外解释。\n输出示例：\n{\n  \"summary\": \"复盘摘要\",\n  \"belief_errors\": [\n    {\n      \"day\": 1,\n      \"phase\": \"day_speech\",\n      \"target_user_name\": \"玩家名\",\n      \"mistake\": \"描述身份推断错误\",\n      \"lesson\": \"复盘结论\"\n    }\n  ],\n  \"decision_errors\": [\n    {\n      \"request_id\": \"行动请求ID\",\n      \"action_type\": \"speak\",\n      \"mistake\": \"描述行动决策错误\",\n      \"lesson\": \"复盘结论\"\n    }\n  ],\n  \"helpful_memories\": [\n    {\n      \"memory_id\": \"memory_x\",\n      \"reason\": \"本局白天队友成为焦点时，该策略能解释更好的发言和投票方向。\"\n    }\n  ],\n  \"new_memories\": [\n    {\n      \"role\": \"werewolf\",\n      \"phase\": \"day_vote\",\n      \"content\": \"当好人阵营已经形成单一归票方向时，狼人应先补充合理怀疑链，而不是突然提出无证据的新目标。\"\n    },\n    {\n      \"role\": null,\n      \"phase\": \"belief\",\n      \"content\": \"身份推断应优先结合投票、发言目标和夜间结果，不要只根据单次发言下结论。\"\n    }\n  ]\n}\n\nhelpful_memories 只能引用输入中已有的 memory_id；只列出本局确实产生帮助或被本局证据支持的已有 memory，不要因为 memory 看起来正确就列入；建议最多 4 条。\nnew_memories 是写入 strategy memory 的候选经验，每条只能包含 role、phase、content 三个字段。生成 new_memories 时，不要写入具体玩家公开名、用户名或昵称；必须是跨局可复用经验。\nrole：适用身份标签；phase：适用阶段标签。null 表示通用，通用标签会匹配任意当前上下文，但精确标签在检索排序时更优先。\nrole 可选枚举：werewolf、seer、witch、hunter、villager。\nphase 可选枚举：belief、day_speech、day_vote、night_werewolf、night_seer、night_witch、hunter_shot、last_words。role 和 phase 必须使用以上标准枚举或 null；不要输出 day、night、speech 等非标准标签。\nnew_memories.content 必须写成可复用的中文策略句，最好包括局面描述和应对思路，不要只描述本局事实。"
+        }
+      ],
+      "response_text": "{\n  \"summary\": \"本局carol作为狼人，整体发挥较好，最终通过空刀策略赢得胜利，但在第2天投票时出现重大失误，未跟随女巫归票队友heidi，反而投票给dave，暴露了团队嫌疑，险些导致失败。\",\n  \"belief_errors\": [],\n  \"decision_errors\": [\n    {\n      \"request_id\": \"game_9c026e3850:13:2:day_vote:-:4:0:carol\",\n      \"action_type\": \"vote\",\n      \"mistake\": \"第2天女巫明确归票heidi，且场上多数票已指向heidi，carol却投了dave，没有跟随大流投票，使自己与多数好人行为不一致，增加了被怀疑的风险。\",\n      \"lesson\": \"当好人阵营形成一致归票时，狼人应跟随投票，避免成为异常票，即使目标是队友。\"\n    }\n  ],\n  \"helpful_memories\": [\n    {\n      \"memory_id\": \"memory_73ca277335714809a8be5dffe1fac3bc\",\n      \"reason\": \"本局第2天归票阶段，若carol遵循该记忆跟随大流投票，则可以避免暴露团队的风险。\"\n    },\n    {\n      \"memory_id\": \"memory_3978e47d02c54ecd8bfa37f8f39749bd\",\n      \"reason\": \"carol在第2天的发言中未明确归票dave，投票却投了dave，言行不一致，该记忆强调的发言与投票一致性本可避免此错误。\"\n    },\n    {\n      \"memory_id\": \"memory_8fd367e08169436c96f6979d1815c04d\",\n      \"reason\": \"本局狼队连续选择刀低调村民bob和frank，符合该记忆的屠民策略，有效降低了被救风险，加速了胜利节奏。\"\n    },\n    {\n      \"memory_id\": \"memory_6e49e7fbbb9946eb9b1baf4b583530b7\",\n      \"reason\": \"通过首夜刀中平民bob、遗言和死亡信息确认神民分布后，狼队坚定继续刀村民frank，该记忆提供的思路确保了屠民路线的彻底执行。\"\n    }\n  ],\n  \"new_memories\": [\n    {\n      \"role\": \"werewolf\",\n      \"phase\": \"night_werewolf\",\n      \"content\": \"当仅剩一狼且女巫解药已用、毒药未明的残局，可以考虑空刀制造平安夜，白天装作困惑的好人，引导女巫归票真正的村民，或利用平安夜自证清白，避免贸然刀人暴露自身。\"\n    },\n    {\n      \"role\": \"werewolf\",\n      \"phase\": \"day_vote\",\n      \"content\": \"在带队神职明确归票时，狼人若未在发言中铺垫对该目标的怀疑，应跟随神职投票，避免投出孤票成为焦点；即使狼队友即将被放逐，也应果断跟票隐藏身份。\"\n    }\n  ]\n}"
+    }
+  }
+}

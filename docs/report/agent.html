@@ -197,6 +197,18 @@
         <div class="callout">
           <p><strong>解耦思考与提交</strong>：已保存但未成功提交的 decision 会被复用、重新 submit，而不是重新调用 LLM——避免一次网络失败触发重复思考与行为漂移。终局处理完成后再次 <code>set_ready(true)</code>，以支持同房多局串行。</p>
         </div>
+      </div>
+    </section>
+
+    <section class="tight" id="appendix-walkthrough">
+      <div class="container">
+        <h2 class="section-title"><span class="num">A</span>附录：Agent 上下文流转示例</h2>
+        <p class="section-desc">
+          以一局 8 人自进化狼人杀的第 2 天为例，跟随一个狼人玩家的「白天发言」决策，
+          完整看一遍 <em>visible state 裁剪 → belief → decision → postgame review</em> 的上下文流转：
+          每个环节模型实际看到的 prompt、输出，以及它们如何被 section 化组装。
+        </p>
+        <div id="walkthrough-root" class="walkthrough-loading">加载走查数据…</div>
 
         <div class="next-prev">
           <a class="prev" href="./game-system.html"><small>上一章</small>游戏系统后端</a>
@@ -209,5 +221,6 @@
   <footer class="site-footer">
     <div class="container"><p>Werewolf-AI · Apache License 2.0</p></div>
   </footer>
+  <script src="./agent-walkthrough.js"></script>
 </body>
 </html>
