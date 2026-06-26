@@ -76,12 +76,16 @@ def fetch_llm(cur, **where) -> dict | None:
     row = cur.fetchone()
     if not row:
         return None
+    system_prompt = ""
     user_prompt = ""
     for m in (row["request_payload"] or {}).get("messages", []):
-        if m.get("role") == "user":
+        if m.get("role") == "system":
+            system_prompt = m.get("content") or ""
+        elif m.get("role") == "user":
             user_prompt = m.get("content") or ""
     return {
         "status": row["status"],
+        "system_prompt": system_prompt,
         "sections": parse_sections(user_prompt),
         "response_text": llm_response_text(row["response_payload"]),
     }

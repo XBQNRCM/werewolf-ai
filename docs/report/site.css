@@ -552,6 +552,7 @@ pre.code {
   border-radius: 999px;
   border: 1px solid var(--border);
 }
+.legend-system { color: #9eb0d4; border-color: rgba(158, 176, 212, 0.35); background: rgba(158, 176, 212, 0.1); }
 .legend-engine { color: var(--teal); border-color: rgba(116, 182, 196, 0.35); background: var(--teal-soft); }
 .legend-belief { color: #b39ddb; border-color: rgba(179, 157, 219, 0.35); background: rgba(179, 157, 219, 0.1); }
 .legend-static { color: var(--gold); border-color: rgba(216, 176, 106, 0.35); background: var(--gold-soft); }
@@ -574,6 +575,7 @@ pre.code {
   border-left: 3px solid var(--border);
   padding: 0 0 0 12px;
 }
+.prompt-section.src-system { border-left-color: #9eb0d4; }
 .prompt-section.src-engine { border-left-color: var(--teal); }
 .prompt-section.src-belief { border-left-color: #b39ddb; }
 .prompt-section.src-static { border-left-color: var(--gold); }

@@ -52,6 +52,16 @@
   }
 
   // collapsible prompt block (consistent style for prompt + response)
+  function systemPromptBlock(text, open) {
+    if (!text) return "";
+    return `<details class="prompt-block${open ? " open-default" : ""}"${open ? " open" : ""}>
+      <summary>System prompt</summary>
+      <div class="prompt-sections">
+        <div class="prompt-section src-system"><pre>${esc(text)}</pre></div>
+      </div>
+    </details>`;
+  }
+
   function promptBlock(label, sections, open) {
     if (!sections) return "";
     return `<details class="prompt-block${open ? " open-default" : ""}"${open ? " open" : ""}>
@@ -165,7 +175,8 @@
     if (!b) return "";
     const llm = b.llm || {};
     return `<p class="prose">行动前先做一次身份推断。belief 只读裁剪后的可见状态，输出每个玩家的推断身份、置信度与可读证据，整轮快照落库供复盘与机制分析。</p>
-    ${promptBlock("Belief prompt", llm.sections, false)}
+    ${systemPromptBlock(llm.system_prompt, false)}
+    ${promptBlock("Belief prompt · user", llm.sections, false)}
     ${outputBlock("Belief 模型输出", llm.response_text, false)}
     <h4 class="sub-h">结构化推断结果</h4>
     ${renderBeliefTable(b.players)}`;
@@ -195,7 +206,8 @@
     return `<p class="prose">决策层在 belief 之上组装 prompt：注入推断摘要、按 <code>role/phase</code> 归一化得分召回的 top-5 记忆，并把动作约束在 <code>legal_actions</code> 内。下方默认展开完整 decision prompt。</p>
     <h4 class="sub-h">召回的策略记忆（按归一化得分排序）</h4>
     ${renderMemories(d.memories)}
-    ${promptBlock("Decision prompt（默认展开）", llm.sections, true)}
+    ${systemPromptBlock(llm.system_prompt, false)}
+    ${promptBlock("Decision prompt · user（默认展开）", llm.sections, true)}
     ${outputBlock("Decision 模型输出", llm.response_text, false)}
     <div class="submitted-action"><strong>提交发言：</strong>${esc(sub.content)}</div>`;
   }
@@ -250,7 +262,8 @@
       )
       .join("");
     return `<p class="prose">终局后用 god replay 把「模型当时知道什么」与「最终真相」放在同一条时间线上复盘，区分 belief 错误与 decision 错误，并把可复用经验写入 room-scoped 策略记忆，供同房后续对局召回。</p>
-    ${promptBlock("Postgame review prompt", llm.sections, false)}
+    ${systemPromptBlock(llm.system_prompt, false)}
+    ${promptBlock("Postgame review prompt · user", llm.sections, false)}
     ${outputBlock("Postgame review 模型输出", llm.response_text, false)}
     <h4 class="sub-h">复盘摘要</h4>
     <div class="review-summary">${esc(p.summary)}</div>
@@ -267,6 +280,7 @@
 
     root.innerHTML = `
       <div class="section-legend">
+        <span class="legend-item legend-system">System</span>
         <span class="legend-item legend-engine">引擎裁剪</span>
         <span class="legend-item legend-belief">Belief</span>
         <span class="legend-item legend-static">Static pack</span>
