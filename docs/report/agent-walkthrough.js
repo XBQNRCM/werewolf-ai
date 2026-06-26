@@ -240,7 +240,7 @@
         </tr>`
       )
       .join("");
-    return `<h4 class="sub-h">策略记忆得分更新（确定性规则）</h4>
+    return `<h4 class="sub-h">策略记忆得分更新</h4>
     <p class="prose">复盘只让模型判定「哪些记忆这局帮上了忙」（helpful），<strong>打分本身不交给模型</strong>，而是由系统按确定性规则更新，避免模型给自己刷分：
       命中 helpful <code>+8</code>；本阵营获胜且 helpful 再 <code>+2</code>；分数上限 <code>100</code>，第一版不做失败扣分。</p>
     <div class="su-formula">本局狼队<strong>${won ? "获胜" : "落败"}</strong> → ${p.helpful_count} 条命中 helpful 的记忆各 <code>+8 ${won ? "+2 = +10" : "= +8"}</code></div>
